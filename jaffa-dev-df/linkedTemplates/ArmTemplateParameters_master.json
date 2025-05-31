@@ -1,0 +1,45 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "jaffa-dev-df"
+		},
+		"AzureDataLakeStorage_accountKey": {
+			"value": ""
+		},
+		"Development LDS_connectionString": {
+			"value": ""
+		},
+		"Azure Databricks_properties_typeProperties_url": {
+			"value": "@{linkedService().BaseURL}"
+		},
+		"AzureDataLakeStorage_properties_typeProperties_url": {
+			"value": "https://developmentdls.dfs.core.windows.net/"
+		},
+		"maishukinyoubi_properties_bau_fmi_parameters_DatabricksInstance": {
+			"value": "6792391718158368.8"
+		},
+		"maishukinyoubi_properties_bau_fmi_parameters_DatabricksPAT": {
+			"value": "dapi3db3696b88221f44d71935ba6399f403-3"
+		},
+		"maishukinyoubi_properties_bau_fmi_parameters_DatabricksWarehouse": {
+			"value": "2567c85ef27cadcd"
+		},
+		"maishukinyoubi_properties_bau_fmi_parameters_DatabricksCatalog": {
+			"value": "vellum_data"
+		},
+		"maishukinyoubi_properties_bau_fmi_parameters_DatabricksSchema": {
+			"value": "treefrog"
+		},
+		"maishukinyoubi_properties_bau_fmi_parameters_DatabricksQuery": {
+			"value": "SELECT * FROM financial_model_inputs"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}

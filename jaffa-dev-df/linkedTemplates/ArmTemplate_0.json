@@ -1,0 +1,1282 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "jaffa-dev-df"
+		},
+		"AzureDataLakeStorage_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'AzureDataLakeStorage'"
+		},
+		"Development LDS_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'Development LDS'"
+		},
+		"Azure Databricks_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "@{linkedService().BaseURL}"
+		},
+		"AzureDataLakeStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://developmentdls.dfs.core.windows.net/"
+		},
+		"maishukinyoubi_properties_bau_fmi_parameters_DatabricksInstance": {
+			"type": "string",
+			"defaultValue": "6792391718158368.8"
+		},
+		"maishukinyoubi_properties_bau_fmi_parameters_DatabricksPAT": {
+			"type": "string",
+			"defaultValue": "dapi3db3696b88221f44d71935ba6399f403-3"
+		},
+		"maishukinyoubi_properties_bau_fmi_parameters_DatabricksWarehouse": {
+			"type": "string",
+			"defaultValue": "2567c85ef27cadcd"
+		},
+		"maishukinyoubi_properties_bau_fmi_parameters_DatabricksCatalog": {
+			"type": "string",
+			"defaultValue": "vellum_data"
+		},
+		"maishukinyoubi_properties_bau_fmi_parameters_DatabricksSchema": {
+			"type": "string",
+			"defaultValue": "treefrog"
+		},
+		"maishukinyoubi_properties_bau_fmi_parameters_DatabricksQuery": {
+			"type": "string",
+			"defaultValue": "SELECT * FROM financial_model_inputs"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/Azure Databricks')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "This linked service works when REST API's were used to submit pre-authorized and signed SQL statements against a Databricks warehouse; the parameter should be the output results link.",
+				"parameters": {
+					"BaseURL": {
+						"type": "string",
+						"defaultValue": "https://adb-6792391718158368.8.azuredatabricks.net/api/2.0/sql/statements/01f03d61-2b4d-195b-b610-aa353d2bc442"
+					}
+				},
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('Azure Databricks_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureDataLakeStorage')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Connection to the current Azure Data Lake",
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('AzureDataLakeStorage_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('AzureDataLakeStorage_accountKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Development LDS')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Connection to the Development Data Lake Storage account",
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('Development LDS_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureDatabricks')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "Azure Databricks",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"BaseURL": {
+							"value": "@dataset().BaseURL",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"BaseURL": {
+						"type": "string",
+						"defaultValue": "https://adb-6792391718158368.8.azuredatabricks.net/api/2.0/sql/statements/01f03d61-2b4d-195b-b610-aa353d2bc442"
+					}
+				},
+				"annotations": [],
+				"type": "RestResource",
+				"typeProperties": {},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/Azure Databricks')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/nore_fmi_json')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "Development LDS",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"json_FileName": {
+						"type": "String",
+						"defaultValue": "2025-05-30T20:18:56.4032505Z.json"
+					}
+				},
+				"folder": {
+					"name": "Northern Re/Financial Model Inputs/raw"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().json_FileName",
+							"type": "Expression"
+						},
+						"folderPath": "inbox",
+						"container": "development-data-lake"
+					},
+					"encodingName": "UTF-8 without BOM"
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"statement_id": {
+							"type": "string"
+						},
+						"status": {
+							"type": "object",
+							"properties": {
+								"state": {
+									"type": "string"
+								}
+							}
+						},
+						"manifest": {
+							"type": "object",
+							"properties": {
+								"format": {
+									"type": "string"
+								},
+								"schema": {
+									"type": "object",
+									"properties": {
+										"column_count": {
+											"type": "integer"
+										},
+										"columns": {
+											"type": "array",
+											"items": {
+												"type": "object",
+												"properties": {
+													"name": {
+														"type": "string"
+													},
+													"type_text": {
+														"type": "string"
+													},
+													"type_name": {
+														"type": "string"
+													},
+													"position": {
+														"type": "integer"
+													}
+												}
+											}
+										}
+									}
+								},
+								"total_chunk_count": {
+									"type": "integer"
+								},
+								"chunks": {
+									"type": "array",
+									"items": {
+										"type": "object",
+										"properties": {
+											"chunk_index": {
+												"type": "integer"
+											},
+											"row_offset": {
+												"type": "integer"
+											},
+											"row_count": {
+												"type": "integer"
+											}
+										}
+									}
+								},
+								"total_row_count": {
+									"type": "integer"
+								},
+								"truncated": {
+									"type": "boolean"
+								}
+							}
+						},
+						"result": {
+							"type": "object",
+							"properties": {
+								"chunk_index": {
+									"type": "integer"
+								},
+								"row_offset": {
+									"type": "integer"
+								},
+								"row_count": {
+									"type": "integer"
+								},
+								"data_array": {
+									"type": "array",
+									"items": {
+										"type": "array",
+										"items": {
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/Development LDS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/nore_fmi_json_bom')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Clone of the no-bom one, but for some reason ADF has issues with the copy data to BOM, and datasets for dataflows require BOM...",
+				"linkedServiceName": {
+					"referenceName": "Development LDS",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"json_FileName": {
+						"type": "String",
+						"defaultValue": "2025-05-30T20:58:24.2277449Z.json"
+					}
+				},
+				"folder": {
+					"name": "Northern Re/Financial Model Inputs/raw"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().json_FileName",
+							"type": "Expression"
+						},
+						"folderPath": "inbox",
+						"container": "development-data-lake"
+					},
+					"encodingName": "UTF-8"
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"statement_id": {
+							"type": "string"
+						},
+						"status": {
+							"type": "object",
+							"properties": {
+								"state": {
+									"type": "string"
+								}
+							}
+						},
+						"manifest": {
+							"type": "object",
+							"properties": {
+								"format": {
+									"type": "string"
+								},
+								"schema": {
+									"type": "object",
+									"properties": {
+										"column_count": {
+											"type": "integer"
+										},
+										"columns": {
+											"type": "array",
+											"items": {
+												"type": "object",
+												"properties": {
+													"name": {
+														"type": "string"
+													},
+													"type_text": {
+														"type": "string"
+													},
+													"type_name": {
+														"type": "string"
+													},
+													"position": {
+														"type": "integer"
+													}
+												}
+											}
+										}
+									}
+								},
+								"total_chunk_count": {
+									"type": "integer"
+								},
+								"chunks": {
+									"type": "array",
+									"items": {
+										"type": "object",
+										"properties": {
+											"chunk_index": {
+												"type": "integer"
+											},
+											"row_offset": {
+												"type": "integer"
+											},
+											"row_count": {
+												"type": "integer"
+											}
+										}
+									}
+								},
+								"total_row_count": {
+									"type": "integer"
+								},
+								"truncated": {
+									"type": "boolean"
+								}
+							}
+						},
+						"result": {
+							"type": "object",
+							"properties": {
+								"chunk_index": {
+									"type": "integer"
+								},
+								"row_offset": {
+									"type": "integer"
+								},
+								"row_count": {
+									"type": "integer"
+								},
+								"data_array": {
+									"type": "array",
+									"items": {
+										"type": "array",
+										"items": {
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/Development LDS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/nore_fmi_parquet')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorage",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"FileName": {
+						"type": "string",
+						"defaultValue": "2025-05-30T14:08:33.3100213Z.parquet.json"
+					}
+				},
+				"folder": {
+					"name": "Northern Re/Financial Model Inputs/bronze"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().FileName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "bronze/northernre/treefrog_snapshots",
+							"type": "Expression"
+						},
+						"fileSystem": "development-data-lake"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "nre_feed",
+						"type": "UTF8"
+					},
+					{
+						"name": "treaty_year",
+						"type": "INT32"
+					},
+					{
+						"name": "v_created",
+						"type": "DATE"
+					},
+					{
+						"name": "query_date",
+						"type": "INT96"
+					},
+					{
+						"name": "bordereaux_month",
+						"type": "DATE"
+					},
+					{
+						"name": "tf_assumed_gross_written_premium",
+						"type": "DECIMAL",
+						"precision": 10,
+						"scale": 2
+					},
+					{
+						"name": "tf_assumed_earned_premium",
+						"type": "DECIMAL",
+						"precision": 10,
+						"scale": 2
+					},
+					{
+						"name": "tf_assumed_paid_losses",
+						"type": "DECIMAL",
+						"precision": 10,
+						"scale": 2
+					},
+					{
+						"name": "tf_assumed_expected_losses",
+						"type": "DECIMAL",
+						"precision": 10,
+						"scale": 2
+					},
+					{
+						"name": "tf_assumed_collected_premium",
+						"type": "DECIMAL",
+						"precision": 10,
+						"scale": 2
+					},
+					{
+						"name": "tf_assumed_ss",
+						"type": "DECIMAL",
+						"precision": 10,
+						"scale": 2
+					},
+					{
+						"name": "tf_assumed_paid_alae",
+						"type": "DECIMAL",
+						"precision": 10,
+						"scale": 2
+					},
+					{
+						"name": "tf_assumed_paid_ulae",
+						"type": "DECIMAL",
+						"precision": 10,
+						"scale": 2
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/nore_fmi_sqllite')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "Development LDS",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Northern Re/Financial Model Inputs/Source"
+				},
+				"annotations": [],
+				"type": "Excel",
+				"typeProperties": {
+					"sheetName": "Vellum",
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "Vellum.xlsx",
+						"folderPath": "inbox",
+						"container": "development-data-lake"
+					},
+					"firstRowAsHeader": true
+				},
+				"schema": [
+					{
+						"name": "nre_feed",
+						"type": "String"
+					},
+					{
+						"name": "treaty_year",
+						"type": "String"
+					},
+					{
+						"name": "v_created",
+						"type": "String"
+					},
+					{
+						"name": "query_date",
+						"type": "String"
+					},
+					{
+						"name": "bordereaux_month",
+						"type": "String"
+					},
+					{
+						"name": "tf_assumed_gross_written_premium",
+						"type": "String"
+					},
+					{
+						"name": "tf_assumed_earned_premium",
+						"type": "String"
+					},
+					{
+						"name": "tf_assumed_paid_losses",
+						"type": "String"
+					},
+					{
+						"name": "tf_assumed_expected_losses",
+						"type": "String"
+					},
+					{
+						"name": "tf_assumed_collected_premium",
+						"type": "String"
+					},
+					{
+						"name": "tf_assumed_ss",
+						"type": "String"
+					},
+					{
+						"name": "tf_assumed_paid_alae",
+						"type": "String"
+					},
+					{
+						"name": "tf_assumed_paid_ulae",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/Development LDS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/bau_fmi')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "NorthernRe/Financial Model Inputs"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "nore_fmi_json_bom",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "nore_fmi_parquet",
+								"type": "DatasetReference"
+							},
+							"name": "sink1",
+							"rejectedDataLinkedService": {
+								"referenceName": "AzureDataLakeStorage",
+								"type": "LinkedServiceReference"
+							}
+						}
+					],
+					"transformations": [
+						{
+							"name": "flatten1"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "aggregate1"
+						},
+						{
+							"name": "filter1"
+						},
+						{
+							"name": "assert1"
+						},
+						{
+							"name": "join1"
+						},
+						{
+							"name": "select1"
+						}
+					],
+					"scriptLines": [
+						"parameters{",
+						"     queryDate as string ('2025-05-30T20:58:24.2277449Z')",
+						"}",
+						"source(output(",
+						"          statement_id as string,",
+						"          status as (state as string),",
+						"          manifest as (format as string, schema as (column_count as integer, columns as (name as string, type_text as string, type_name as string, position as integer)[]), total_chunk_count as integer, chunks as (chunk_index as integer, row_offset as integer, row_count as integer)[], total_row_count as integer, truncated as boolean),",
+						"          result as (chunk_index as integer, row_offset as integer, row_count as integer, data_array as string[][])",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     moveFiles: ['inbox','bronze/northernre/treefrog_snapshots'],",
+						"     documentForm: 'singleDocument') ~> source1",
+						"source1 foldDown(unroll(result.data_array),",
+						"     mapColumn(",
+						"          statement_id,",
+						"          status = status.state,",
+						"          rows = result.data_array",
+						"     ),",
+						"     skipDuplicateMapInputs: false,",
+						"     skipDuplicateMapOutputs: false) ~> flatten1",
+						"flatten1 derive(nre_feed = rows[1],",
+						"          bordereaux_month = toDate(rows[2],\"M/d/yy\"),",
+						"          treaty_year = toInteger(rows[3]),",
+						"          tf_assumed_paid_ulae = toDecimal(replace(rows[4], ',', ''), 28, 2),",
+						"          tf_assumed_paid_alae = toDecimal(replace(rows[5], ',', ''), 28, 2),",
+						"          tf_assumed_collected_premium = toDecimal(replace(rows[6], ',', ''), 28, 2),",
+						"          tf_assumed_earned_premium = toDecimal(replace(rows[7], ',', ''), 28, 2),",
+						"          tf_assumed_gross_written_premium = toDecimal(replace(rows[8], ',', ''), 28, 2),",
+						"          tf_assumed_paid_losses = toDecimal(replace(rows[9], ',', ''), 28, 2),",
+						"          tf_assumed_expected_losses = toDecimal(replace(rows[10], ',', ''), 28, 2),",
+						"          tf_assumed_ss = toDecimal(replace(rows[11], ',', ''), 28, 2),",
+						"          v_created = toDate(rows[12]),",
+						"          FileName = concat('/bronze/northernre/treefrog_snapshots/', rows[1], '/', rows[3], '/', $queryDate, '.parquet'),",
+						"          query_date = toTimestamp($queryDate)) ~> derivedColumn1",
+						"derivedColumn1 aggregate(groupBy(nre_feed,",
+						"          treaty_year,",
+						"          bordereaux_month),",
+						"     row_count = count()) ~> aggregate1",
+						"aggregate1 filter(row_count > 1) ~> filter1",
+						"filter1 assert(expectTrue(isNull(row_count), false, 'uniqueKeys'),",
+						"     abort: true) ~> assert1",
+						"derivedColumn1, assert1 join(derivedColumn1@nre_feed == aggregate1@nre_feed",
+						"     && derivedColumn1@treaty_year == aggregate1@treaty_year",
+						"     && derivedColumn1@bordereaux_month == aggregate1@bordereaux_month,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"join1 select(mapColumn(",
+						"          statement_id,",
+						"          status,",
+						"          rows,",
+						"          nre_feed = derivedColumn1@nre_feed,",
+						"          bordereaux_month = derivedColumn1@bordereaux_month,",
+						"          treaty_year = derivedColumn1@treaty_year,",
+						"          tf_assumed_paid_ulae,",
+						"          tf_assumed_paid_alae,",
+						"          tf_assumed_collected_premium,",
+						"          tf_assumed_earned_premium,",
+						"          tf_assumed_gross_written_premium,",
+						"          tf_assumed_paid_losses,",
+						"          tf_assumed_expected_losses,",
+						"          tf_assumed_ss,",
+						"          v_created,",
+						"          FileName,",
+						"          query_date,",
+						"          row_count",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"select1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          nre_feed as string,",
+						"          treaty_year as integer,",
+						"          v_created as date,",
+						"          query_date as timestamp,",
+						"          bordereaux_month as date,",
+						"          tf_assumed_gross_written_premium as decimal(10,2),",
+						"          tf_assumed_earned_premium as decimal(10,2),",
+						"          tf_assumed_paid_losses as decimal(10,2),",
+						"          tf_assumed_expected_losses as decimal(10,2),",
+						"          tf_assumed_collected_premium as decimal(10,2),",
+						"          tf_assumed_ss as decimal(10,2),",
+						"          tf_assumed_paid_alae as decimal(10,2),",
+						"          tf_assumed_paid_ulae as decimal(10,2)",
+						"     ),",
+						"     format: 'parquet',",
+						"     rowUrlColumn:'FileName',",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          nre_feed,",
+						"          treaty_year,",
+						"          v_created,",
+						"          query_date,",
+						"          bordereaux_month,",
+						"          tf_assumed_gross_written_premium,",
+						"          tf_assumed_earned_premium,",
+						"          tf_assumed_paid_losses,",
+						"          tf_assumed_expected_losses,",
+						"          tf_assumed_collected_premium,",
+						"          tf_assumed_ss,",
+						"          tf_assumed_paid_alae,",
+						"          tf_assumed_paid_ulae",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/nore_fmi_json_bom')]",
+				"[concat(variables('factoryId'), '/datasets/nore_fmi_parquet')]",
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/initial_fmi')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Convert Excel snapshot of Vellum data for loading",
+				"folder": {
+					"name": "NorthernRe/Financial Model Inputs"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "nore_fmi_sqllite",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "nore_fmi_parquet",
+								"type": "DatasetReference"
+							},
+							"name": "sink1",
+							"description": "Export data to nore_fmi_parquet",
+							"rejectedDataLinkedService": {
+								"referenceName": "AzureDataLakeStorage",
+								"type": "LinkedServiceReference"
+							}
+						}
+					],
+					"transformations": [
+						{
+							"name": "determineFileName",
+							"description": "Adding a column for the destination file path based on the values in the rows."
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          nre_feed as string,",
+						"          treaty_year as integer,",
+						"          v_created as date,",
+						"          query_date as string,",
+						"          bordereaux_month as date,",
+						"          tf_assumed_gross_written_premium as decimal(10,2),",
+						"          tf_assumed_earned_premium as decimal(10,2),",
+						"          tf_assumed_paid_losses as decimal(10,2),",
+						"          tf_assumed_expected_losses as decimal(10,2),",
+						"          tf_assumed_collected_premium as decimal(10,2),",
+						"          tf_assumed_ss as decimal(10,2),",
+						"          tf_assumed_paid_alae as decimal(10,2),",
+						"          tf_assumed_paid_ulae as decimal(10,2)",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     moveFiles: ['inbox','bronze/northernre/treefrog_snapshots'],",
+						"     partitionBy('key',",
+						"          0,",
+						"          nre_feed,",
+						"          treaty_year,",
+						"          query_date",
+						"     )) ~> source1",
+						"source1 derive(FileName = \"/bronze/northernre/treefrog_snapshots/{nre_feed}/{treaty_year}/{toString(query_date)}.parquet\",",
+						"          query_date = toTimestamp(toDate(query_date))) ~> determineFileName",
+						"determineFileName sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          nre_feed as string,",
+						"          treaty_year as integer,",
+						"          v_created as date,",
+						"          query_date as timestamp,",
+						"          bordereaux_month as date,",
+						"          tf_assumed_gross_written_premium as decimal(10,2),",
+						"          tf_assumed_earned_premium as decimal(10,2),",
+						"          tf_assumed_paid_losses as decimal(10,2),",
+						"          tf_assumed_expected_losses as decimal(10,2),",
+						"          tf_assumed_collected_premium as decimal(10,2),",
+						"          tf_assumed_ss as decimal(10,2),",
+						"          tf_assumed_paid_alae as decimal(10,2),",
+						"          tf_assumed_paid_ulae as decimal(10,2)",
+						"     ),",
+						"     format: 'parquet',",
+						"     rowUrlColumn:'FileName',",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          nre_feed,",
+						"          treaty_year,",
+						"          v_created,",
+						"          query_date,",
+						"          bordereaux_month,",
+						"          tf_assumed_gross_written_premium,",
+						"          tf_assumed_earned_premium,",
+						"          tf_assumed_paid_losses,",
+						"          tf_assumed_expected_losses,",
+						"          tf_assumed_collected_premium,",
+						"          tf_assumed_ss,",
+						"          tf_assumed_paid_alae,",
+						"          tf_assumed_paid_ulae",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/nore_fmi_sqllite')]",
+				"[concat(variables('factoryId'), '/datasets/nore_fmi_parquet')]",
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/bau_fmi')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Weekly load from the Northern Re database",
+				"activities": [
+					{
+						"name": "bau_fmi",
+						"description": "Converts the JSON output of the financial model inputs into the standardized layout of the data lake",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "CopyResults",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "bau_fmi",
+								"type": "DataFlowReference",
+								"parameters": {
+									"queryDate": {
+										"value": "'@{pipeline().TriggerTime}'",
+										"type": "Expression"
+									}
+								},
+								"datasetParameters": {
+									"source1": {
+										"json_FileName": {
+											"value": "@{pipeline().TriggerTime}.json",
+											"type": "Expression"
+										}
+									},
+									"sink1": {
+										"FileName": {
+											"value": "@{pipeline().TriggerTime}.parquet",
+											"type": "Expression"
+										}
+									}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "CopyResults",
+						"description": "Copies the JSON output of the Data Bricks server on Northern Re.",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "CheckStatus",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "GET",
+								"additionalHeaders": {
+									"Authorization": {
+										"value": "Bearer @{pipeline().parameters.DatabricksPAT}",
+										"type": "Expression"
+									},
+									"Content-Type": "application/json"
+								},
+								"paginationRules": {
+									"supportRFC5988": "true"
+								}
+							},
+							"sink": {
+								"type": "JsonSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings",
+									"copyBehavior": "PreserveHierarchy"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"path": "$['statement_id']"
+										},
+										"sink": {
+											"path": "$['statement_id']"
+										}
+									},
+									{
+										"source": {
+											"path": "$['status']"
+										},
+										"sink": {
+											"path": "$['status']"
+										}
+									},
+									{
+										"source": {
+											"path": "$['manifest']"
+										},
+										"sink": {
+											"path": "$['manifest']"
+										}
+									},
+									{
+										"source": {
+											"path": "$['result']"
+										},
+										"sink": {
+											"path": "$['result']"
+										}
+									}
+								]
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "AzureDatabricks",
+								"type": "DatasetReference",
+								"parameters": {
+									"BaseURL": {
+										"value": "https://adb-@{pipeline().parameters.DatabricksInstance}.azuredatabricks.net/api/2.0/sql/statements/@{activity('SubmitSQLStatement').output.statement_id}",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "nore_fmi_json",
+								"type": "DatasetReference",
+								"parameters": {
+									"json_FileName": {
+										"value": "@{pipeline().TriggerTime}.json",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "SubmitSQLStatement",
+						"description": "Submits our SQL Statement to Azure Data Bricks",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Authorization": {
+									"value": "Bearer @{pipeline().parameters.DatabricksPAT}",
+									"type": "Expression"
+								},
+								"Content-Type": "application/json"
+							},
+							"url": "https://adb-6792391718158368.8.azuredatabricks.net/api/2.0/sql/statements",
+							"body": {
+								"value": "@json(concat('{',\n  '\"warehouse_id\":\"', pipeline().parameters.DatabricksWarehouse, '\",',\n  '\"catalog\":\"', pipeline().parameters.DatabricksCatalog, '\",',\n  '\"schema\":\"', pipeline().parameters.DatabricksSchema, '\",',\n  '\"statement\":\"', pipeline().parameters.DatabricksQuery,'\",',\n'}'))",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "CheckStatus",
+						"description": "Checks the status of the submitted SQL statement on Azure Data Bricks",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "SubmitSQLStatement",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {
+								"Authorization": {
+									"value": "Bearer @{pipeline().parameters.DatabricksPAT}",
+									"type": "Expression"
+								},
+								"Content-Type": "application/json"
+							},
+							"url": {
+								"value": "https://adb-@{pipeline().parameters.DatabricksInstance}.azuredatabricks.net/api/2.0/sql/statements/@{activity('SubmitSQLStatement').output.statement_id}",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"DatabricksInstance": {
+						"type": "string",
+						"defaultValue": "6792391718158368.8"
+					},
+					"DatabricksPAT": {
+						"type": "string",
+						"defaultValue": "dapi3db3696b88221f44d71935ba6399f403-3"
+					},
+					"DatabricksWarehouse": {
+						"type": "string",
+						"defaultValue": "2567c85ef27cadcd"
+					},
+					"DatabricksCatalog": {
+						"type": "string",
+						"defaultValue": "vellum_data"
+					},
+					"DatabricksSchema": {
+						"type": "string",
+						"defaultValue": "treefrog"
+					},
+					"DatabricksQuery": {
+						"type": "string",
+						"defaultValue": "SELECT * FROM financial_model_inputs"
+					}
+				},
+				"folder": {
+					"name": "NorthernRe/Financial Model Inputs"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-05-30T21:01:59Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/bau_fmi')]",
+				"[concat(variables('factoryId'), '/datasets/AzureDatabricks')]",
+				"[concat(variables('factoryId'), '/datasets/nore_fmi_json')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/initial_fmi')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Initial load from our SQL Lite Database",
+				"activities": [
+					{
+						"name": "initial_fmi",
+						"description": "Initial load of the SQL Lite data to date (which is what is being replaced by the bau_fmi pipeline)",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "initial_fmi",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"source1": {},
+									"sink1": {
+										"FileName": "20250519.parquet"
+									}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "NorthernRe/Financial Model Inputs"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-05-30T18:18:08Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/initial_fmi')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/maishukinyoubi')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Run every Friday at 21:00",
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "bau_fmi",
+							"type": "PipelineReference"
+						},
+						"parameters": {
+							"DatabricksInstance": "[parameters('maishukinyoubi_properties_bau_fmi_parameters_DatabricksInstance')]",
+							"DatabricksPAT": "[parameters('maishukinyoubi_properties_bau_fmi_parameters_DatabricksPAT')]",
+							"DatabricksWarehouse": "[parameters('maishukinyoubi_properties_bau_fmi_parameters_DatabricksWarehouse')]",
+							"DatabricksCatalog": "[parameters('maishukinyoubi_properties_bau_fmi_parameters_DatabricksCatalog')]",
+							"DatabricksSchema": "[parameters('maishukinyoubi_properties_bau_fmi_parameters_DatabricksSchema')]",
+							"DatabricksQuery": "[parameters('maishukinyoubi_properties_bau_fmi_parameters_DatabricksQuery')]"
+						}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Week",
+						"interval": 1,
+						"startTime": "2025-05-30T21:00:00",
+						"timeZone": "Eastern Standard Time",
+						"schedule": {
+							"minutes": [
+								0
+							],
+							"hours": [
+								21
+							],
+							"weekDays": [
+								"Friday"
+							]
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/bau_fmi')]"
+			]
+		}
+	]
+}
