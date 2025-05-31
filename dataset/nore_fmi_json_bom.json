@@ -1,0 +1,135 @@
+{
+	"name": "nore_fmi_json_bom",
+	"properties": {
+		"description": "Clone of the no-bom one, but for some reason ADF has issues with the copy data to BOM, and datasets for dataflows require BOM...",
+		"linkedServiceName": {
+			"referenceName": "Development LDS",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"json_FileName": {
+				"type": "String",
+				"defaultValue": "2025-05-30T20:58:24.2277449Z.json"
+			}
+		},
+		"folder": {
+			"name": "Northern Re/Financial Model Inputs/raw"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@dataset().json_FileName",
+					"type": "Expression"
+				},
+				"folderPath": "inbox",
+				"container": "development-data-lake"
+			},
+			"encodingName": "UTF-8"
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"statement_id": {
+					"type": "string"
+				},
+				"status": {
+					"type": "object",
+					"properties": {
+						"state": {
+							"type": "string"
+						}
+					}
+				},
+				"manifest": {
+					"type": "object",
+					"properties": {
+						"format": {
+							"type": "string"
+						},
+						"schema": {
+							"type": "object",
+							"properties": {
+								"column_count": {
+									"type": "integer"
+								},
+								"columns": {
+									"type": "array",
+									"items": {
+										"type": "object",
+										"properties": {
+											"name": {
+												"type": "string"
+											},
+											"type_text": {
+												"type": "string"
+											},
+											"type_name": {
+												"type": "string"
+											},
+											"position": {
+												"type": "integer"
+											}
+										}
+									}
+								}
+							}
+						},
+						"total_chunk_count": {
+							"type": "integer"
+						},
+						"chunks": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"chunk_index": {
+										"type": "integer"
+									},
+									"row_offset": {
+										"type": "integer"
+									},
+									"row_count": {
+										"type": "integer"
+									}
+								}
+							}
+						},
+						"total_row_count": {
+							"type": "integer"
+						},
+						"truncated": {
+							"type": "boolean"
+						}
+					}
+				},
+				"result": {
+					"type": "object",
+					"properties": {
+						"chunk_index": {
+							"type": "integer"
+						},
+						"row_offset": {
+							"type": "integer"
+						},
+						"row_count": {
+							"type": "integer"
+						},
+						"data_array": {
+							"type": "array",
+							"items": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

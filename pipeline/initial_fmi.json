@@ -1,0 +1,44 @@
+{
+	"name": "initial_fmi",
+	"properties": {
+		"description": "Initial load from our SQL Lite Database",
+		"activities": [
+			{
+				"name": "initial_fmi",
+				"description": "Initial load of the SQL Lite data to date (which is what is being replaced by the bau_fmi pipeline)",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "initial_fmi",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"sink1": {
+								"FileName": "20250519.parquet"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"folder": {
+			"name": "NorthernRe/Financial Model Inputs"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-05-30T18:18:08Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

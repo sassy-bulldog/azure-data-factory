@@ -1,0 +1,79 @@
+{
+	"name": "nore_fmi_sqllite",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Development LDS",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Northern Re/Financial Model Inputs/Source"
+		},
+		"annotations": [],
+		"type": "Excel",
+		"typeProperties": {
+			"sheetName": "Vellum",
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "Vellum.xlsx",
+				"folderPath": "inbox",
+				"container": "development-data-lake"
+			},
+			"firstRowAsHeader": true
+		},
+		"schema": [
+			{
+				"name": "nre_feed",
+				"type": "String"
+			},
+			{
+				"name": "treaty_year",
+				"type": "String"
+			},
+			{
+				"name": "v_created",
+				"type": "String"
+			},
+			{
+				"name": "query_date",
+				"type": "String"
+			},
+			{
+				"name": "bordereaux_month",
+				"type": "String"
+			},
+			{
+				"name": "tf_assumed_gross_written_premium",
+				"type": "String"
+			},
+			{
+				"name": "tf_assumed_earned_premium",
+				"type": "String"
+			},
+			{
+				"name": "tf_assumed_paid_losses",
+				"type": "String"
+			},
+			{
+				"name": "tf_assumed_expected_losses",
+				"type": "String"
+			},
+			{
+				"name": "tf_assumed_collected_premium",
+				"type": "String"
+			},
+			{
+				"name": "tf_assumed_ss",
+				"type": "String"
+			},
+			{
+				"name": "tf_assumed_paid_alae",
+				"type": "String"
+			},
+			{
+				"name": "tf_assumed_paid_ulae",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

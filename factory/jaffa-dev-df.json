@@ -1,0 +1,14 @@
+{
+	"name": "jaffa-dev-df",
+	"properties": {
+		"globalConfigurations": {
+			"PipelineBillingEnabled": "false"
+		}
+	},
+	"location": "centralus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "27d25b05-7656-4896-bf8e-ecd604db72e2",
+		"tenantId": "cbbffc85-75bc-4dab-ad6a-447c85ff6d2a"
+	}
+}

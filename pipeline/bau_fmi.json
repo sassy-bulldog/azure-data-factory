@@ -1,0 +1,267 @@
+{
+	"name": "bau_fmi",
+	"properties": {
+		"description": "Weekly load from the Northern Re database",
+		"activities": [
+			{
+				"name": "bau_fmi",
+				"description": "Converts the JSON output of the financial model inputs into the standardized layout of the data lake",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "CopyResults",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "bau_fmi",
+						"type": "DataFlowReference",
+						"parameters": {
+							"queryDate": {
+								"value": "'@{pipeline().TriggerTime}'",
+								"type": "Expression"
+							}
+						},
+						"datasetParameters": {
+							"source1": {
+								"json_FileName": {
+									"value": "@{pipeline().TriggerTime}.json",
+									"type": "Expression"
+								}
+							},
+							"sink1": {
+								"FileName": {
+									"value": "@{pipeline().TriggerTime}.parquet",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "CopyResults",
+				"description": "Copies the JSON output of the Data Bricks server on Northern Re.",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "CheckStatus",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Authorization": {
+								"value": "Bearer @{pipeline().parameters.DatabricksPAT}",
+								"type": "Expression"
+							},
+							"Content-Type": "application/json"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings",
+							"copyBehavior": "PreserveHierarchy"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['statement_id']"
+								},
+								"sink": {
+									"path": "$['statement_id']"
+								}
+							},
+							{
+								"source": {
+									"path": "$['status']"
+								},
+								"sink": {
+									"path": "$['status']"
+								}
+							},
+							{
+								"source": {
+									"path": "$['manifest']"
+								},
+								"sink": {
+									"path": "$['manifest']"
+								}
+							},
+							{
+								"source": {
+									"path": "$['result']"
+								},
+								"sink": {
+									"path": "$['result']"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "AzureDatabricks",
+						"type": "DatasetReference",
+						"parameters": {
+							"BaseURL": {
+								"value": "https://adb-@{pipeline().parameters.DatabricksInstance}.azuredatabricks.net/api/2.0/sql/statements/@{activity('SubmitSQLStatement').output.statement_id}",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "nore_fmi_json",
+						"type": "DatasetReference",
+						"parameters": {
+							"json_FileName": {
+								"value": "@{pipeline().TriggerTime}.json",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "SubmitSQLStatement",
+				"description": "Submits our SQL Statement to Azure Data Bricks",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Authorization": {
+							"value": "Bearer @{pipeline().parameters.DatabricksPAT}",
+							"type": "Expression"
+						},
+						"Content-Type": "application/json"
+					},
+					"url": "https://adb-6792391718158368.8.azuredatabricks.net/api/2.0/sql/statements",
+					"body": {
+						"value": "@json(concat('{',\n  '\"warehouse_id\":\"', pipeline().parameters.DatabricksWarehouse, '\",',\n  '\"catalog\":\"', pipeline().parameters.DatabricksCatalog, '\",',\n  '\"schema\":\"', pipeline().parameters.DatabricksSchema, '\",',\n  '\"statement\":\"', pipeline().parameters.DatabricksQuery,'\",',\n'}'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "CheckStatus",
+				"description": "Checks the status of the submitted SQL statement on Azure Data Bricks",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "SubmitSQLStatement",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"headers": {
+						"Authorization": {
+							"value": "Bearer @{pipeline().parameters.DatabricksPAT}",
+							"type": "Expression"
+						},
+						"Content-Type": "application/json"
+					},
+					"url": {
+						"value": "https://adb-@{pipeline().parameters.DatabricksInstance}.azuredatabricks.net/api/2.0/sql/statements/@{activity('SubmitSQLStatement').output.statement_id}",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"DatabricksInstance": {
+				"type": "string",
+				"defaultValue": "6792391718158368.8"
+			},
+			"DatabricksPAT": {
+				"type": "string",
+				"defaultValue": "dapi3db3696b88221f44d71935ba6399f403-3"
+			},
+			"DatabricksWarehouse": {
+				"type": "string",
+				"defaultValue": "2567c85ef27cadcd"
+			},
+			"DatabricksCatalog": {
+				"type": "string",
+				"defaultValue": "vellum_data"
+			},
+			"DatabricksSchema": {
+				"type": "string",
+				"defaultValue": "treefrog"
+			},
+			"DatabricksQuery": {
+				"type": "string",
+				"defaultValue": "SELECT * FROM financial_model_inputs"
+			}
+		},
+		"folder": {
+			"name": "NorthernRe/Financial Model Inputs"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-05-30T21:01:59Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

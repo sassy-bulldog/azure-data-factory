@@ -1,0 +1,106 @@
+{
+	"name": "nore_fmi_parquet",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"FileName": {
+				"type": "string",
+				"defaultValue": "2025-05-30T14:08:33.3100213Z.parquet.json"
+			}
+		},
+		"folder": {
+			"name": "Northern Re/Financial Model Inputs/bronze"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().FileName",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "bronze/northernre/treefrog_snapshots",
+					"type": "Expression"
+				},
+				"fileSystem": "development-data-lake"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "nre_feed",
+				"type": "UTF8"
+			},
+			{
+				"name": "treaty_year",
+				"type": "INT32"
+			},
+			{
+				"name": "v_created",
+				"type": "DATE"
+			},
+			{
+				"name": "query_date",
+				"type": "INT96"
+			},
+			{
+				"name": "bordereaux_month",
+				"type": "DATE"
+			},
+			{
+				"name": "tf_assumed_gross_written_premium",
+				"type": "DECIMAL",
+				"precision": 10,
+				"scale": 2
+			},
+			{
+				"name": "tf_assumed_earned_premium",
+				"type": "DECIMAL",
+				"precision": 10,
+				"scale": 2
+			},
+			{
+				"name": "tf_assumed_paid_losses",
+				"type": "DECIMAL",
+				"precision": 10,
+				"scale": 2
+			},
+			{
+				"name": "tf_assumed_expected_losses",
+				"type": "DECIMAL",
+				"precision": 10,
+				"scale": 2
+			},
+			{
+				"name": "tf_assumed_collected_premium",
+				"type": "DECIMAL",
+				"precision": 10,
+				"scale": 2
+			},
+			{
+				"name": "tf_assumed_ss",
+				"type": "DECIMAL",
+				"precision": 10,
+				"scale": 2
+			},
+			{
+				"name": "tf_assumed_paid_alae",
+				"type": "DECIMAL",
+				"precision": 10,
+				"scale": 2
+			},
+			{
+				"name": "tf_assumed_paid_ulae",
+				"type": "DECIMAL",
+				"precision": 10,
+				"scale": 2
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

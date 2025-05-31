@@ -1,0 +1,44 @@
+{
+	"name": "maishukinyoubi",
+	"properties": {
+		"description": "Run every Friday at 21:00",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "bau_fmi",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"DatabricksInstance": "6792391718158368.8",
+					"DatabricksPAT": "dapi3db3696b88221f44d71935ba6399f403-3",
+					"DatabricksWarehouse": "2567c85ef27cadcd",
+					"DatabricksCatalog": "vellum_data",
+					"DatabricksSchema": "treefrog",
+					"DatabricksQuery": "SELECT * FROM financial_model_inputs"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2025-05-30T21:00:00",
+				"timeZone": "Eastern Standard Time",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						21
+					],
+					"weekDays": [
+						"Friday"
+					]
+				}
+			}
+		}
+	}
+}

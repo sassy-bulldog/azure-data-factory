@@ -1,0 +1,109 @@
+{
+	"name": "initial_fmi",
+	"properties": {
+		"description": "Convert Excel snapshot of Vellum data for loading",
+		"folder": {
+			"name": "NorthernRe/Financial Model Inputs"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "nore_fmi_sqllite",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "nore_fmi_parquet",
+						"type": "DatasetReference"
+					},
+					"name": "sink1",
+					"description": "Export data to nore_fmi_parquet",
+					"rejectedDataLinkedService": {
+						"referenceName": "AzureDataLakeStorage",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "determineFileName",
+					"description": "Adding a column for the destination file path based on the values in the rows."
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          nre_feed as string,",
+				"          treaty_year as integer,",
+				"          v_created as date,",
+				"          query_date as string,",
+				"          bordereaux_month as date,",
+				"          tf_assumed_gross_written_premium as decimal(10,2),",
+				"          tf_assumed_earned_premium as decimal(10,2),",
+				"          tf_assumed_paid_losses as decimal(10,2),",
+				"          tf_assumed_expected_losses as decimal(10,2),",
+				"          tf_assumed_collected_premium as decimal(10,2),",
+				"          tf_assumed_ss as decimal(10,2),",
+				"          tf_assumed_paid_alae as decimal(10,2),",
+				"          tf_assumed_paid_ulae as decimal(10,2)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     moveFiles: ['inbox','bronze/northernre/treefrog_snapshots'],",
+				"     partitionBy('key',",
+				"          0,",
+				"          nre_feed,",
+				"          treaty_year,",
+				"          query_date",
+				"     )) ~> source1",
+				"source1 derive(FileName = \"/bronze/northernre/treefrog_snapshots/{nre_feed}/{treaty_year}/{toString(query_date)}.parquet\",",
+				"          query_date = toTimestamp(toDate(query_date))) ~> determineFileName",
+				"determineFileName sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          nre_feed as string,",
+				"          treaty_year as integer,",
+				"          v_created as date,",
+				"          query_date as timestamp,",
+				"          bordereaux_month as date,",
+				"          tf_assumed_gross_written_premium as decimal(10,2),",
+				"          tf_assumed_earned_premium as decimal(10,2),",
+				"          tf_assumed_paid_losses as decimal(10,2),",
+				"          tf_assumed_expected_losses as decimal(10,2),",
+				"          tf_assumed_collected_premium as decimal(10,2),",
+				"          tf_assumed_ss as decimal(10,2),",
+				"          tf_assumed_paid_alae as decimal(10,2),",
+				"          tf_assumed_paid_ulae as decimal(10,2)",
+				"     ),",
+				"     format: 'parquet',",
+				"     rowUrlColumn:'FileName',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          nre_feed,",
+				"          treaty_year,",
+				"          v_created,",
+				"          query_date,",
+				"          bordereaux_month,",
+				"          tf_assumed_gross_written_premium,",
+				"          tf_assumed_earned_premium,",
+				"          tf_assumed_paid_losses,",
+				"          tf_assumed_expected_losses,",
+				"          tf_assumed_collected_premium,",
+				"          tf_assumed_ss,",
+				"          tf_assumed_paid_alae,",
+				"          tf_assumed_paid_ulae",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

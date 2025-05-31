@@ -1,0 +1,25 @@
+{
+	"name": "AzureDatabricks",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Azure Databricks",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"BaseURL": {
+					"value": "@dataset().BaseURL",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"BaseURL": {
+				"type": "string",
+				"defaultValue": "https://adb-6792391718158368.8.azuredatabricks.net/api/2.0/sql/statements/01f03d61-2b4d-195b-b610-aa353d2bc442"
+			}
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
