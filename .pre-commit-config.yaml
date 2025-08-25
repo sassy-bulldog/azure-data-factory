@@ -22,7 +22,7 @@ repos:
   # Fork from https://github.com/antonbabenko/pre-commit-terraform
   # His does not yet use docker images
   - repo: https://github.com/actuarysailor/pre-commit-terraform
-    rev: "1815705d890046e053875e8b75e30965f9fa62e9"
+    rev: "v1.101.1"
     hooks:
       - id: terraform_fmt_docker
       - id: terraform_validate_docker
