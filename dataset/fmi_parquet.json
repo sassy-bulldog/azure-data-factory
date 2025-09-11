@@ -1,5 +1,5 @@
 {
-	"name": "nore_fmi_parquet",
+	"name": "fmi_parquet",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "AzureDataLakeStorage",
@@ -12,7 +12,7 @@
 			}
 		},
 		"folder": {
-			"name": "Northern Re/Financial Model Inputs/bronze"
+			"name": "Jaffa/Financial Model Inputs/bronze"
 		},
 		"annotations": [],
 		"type": "Parquet",

@@ -1,0 +1,126 @@
+{
+	"name": "experience_load_raw",
+	"properties": {
+		"description": "Weekly load from the Northern Re database",
+		"activities": [
+			{
+				"name": "bau_nore_raw",
+				"description": "Converts the JSON output of the financial model inputs into the standardized layout of the data lake",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Get NoRe Data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "bau_nore_raw",
+						"type": "DataFlowReference",
+						"parameters": {
+							"queryDate": {
+								"value": "'@{variables('queryDate')}'",
+								"type": "Expression"
+							}
+						},
+						"datasetParameters": {
+							"source1": {
+								"json_FileName": {
+									"value": "@{variables('queryDate')}.json",
+									"type": "Expression"
+								}
+							},
+							"sink1": {
+								"FileName": {
+									"value": "@{variables('queryDate')}.parquet",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Get NoRe Data",
+				"description": "Extract Nothern Re data from Databricks",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Set queryDate",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "bau_nore",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"DatabricksInstance": "6792391718158368.8",
+						"DatabricksPAT": "dapi3db3696b88221f44d71935ba6399f403-3",
+						"DatabricksWarehouse": "2567c85ef27cadcd",
+						"DatabricksCatalog": "vellum_data",
+						"DatabricksSchema": "treefrog",
+						"DatabricksQuery": "SELECT * FROM financial_model_inputs",
+						"queryDate": {
+							"value": "@variables('queryDate')",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Set queryDate",
+				"description": "Captures the pipeline trigger time as the query date for future use.",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "queryDate",
+					"value": {
+						"value": "@pipeline().TriggerTime",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"variables": {
+			"queryDate": {
+				"type": "String",
+				"defaultValue": "2025-08-02T01:00:00.6909793Z"
+			}
+		},
+		"folder": {
+			"name": "Jaffa/Financial Model Inputs"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-05-30T21:01:59Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

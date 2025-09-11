@@ -7,16 +7,8 @@
 		"pipelines": [
 			{
 				"pipelineReference": {
-					"referenceName": "bau_fmi",
+					"referenceName": "experience_load_raw",
 					"type": "PipelineReference"
-				},
-				"parameters": {
-					"DatabricksInstance": "6792391718158368.8",
-					"DatabricksPAT": "dapi3db3696b88221f44d71935ba6399f403-3",
-					"DatabricksWarehouse": "2567c85ef27cadcd",
-					"DatabricksCatalog": "vellum_data",
-					"DatabricksSchema": "treefrog",
-					"DatabricksQuery": "SELECT * FROM financial_model_inputs"
 				}
 			}
 		],

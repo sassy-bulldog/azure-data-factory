@@ -3,7 +3,7 @@
 	"properties": {
 		"description": "Convert Excel snapshot of Vellum data for loading",
 		"folder": {
-			"name": "NorthernRe/Financial Model Inputs"
+			"name": "Jaffa/Financial Model Inputs"
 		},
 		"type": "MappingDataFlow",
 		"typeProperties": {
@@ -19,7 +19,7 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "nore_fmi_parquet",
+						"referenceName": "fmi_parquet",
 						"type": "DatasetReference"
 					},
 					"name": "sink1",

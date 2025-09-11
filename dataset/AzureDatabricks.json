@@ -17,6 +17,9 @@
 				"defaultValue": "https://adb-6792391718158368.8.azuredatabricks.net/api/2.0/sql/statements/01f03d61-2b4d-195b-b610-aa353d2bc442"
 			}
 		},
+		"folder": {
+			"name": "Northern Re"
+		},
 		"annotations": [],
 		"type": "RestResource",
 		"schema": []
