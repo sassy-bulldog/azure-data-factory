@@ -105,6 +105,7 @@
 				"          status,",
 				"          rows,",
 				"          nre_feed = derivedColumn1@nre_feed,",
+				"          adm_nonadm_indicator = derivedColumn1@adm_nonadm_indicator,",
 				"          bordereaux_month = derivedColumn1@bordereaux_month,",
 				"          treaty_year = derivedColumn1@treaty_year,",
 				"          tf_assumed_paid_ulae,",
