@@ -93,6 +93,7 @@
 				"          bordereaux_month),",
 				"     row_count = count()) ~> aggregate1",
 				"derivedColumn1, aggregate1 join(derivedColumn1@nre_feed == aggregate1@nre_feed",
+				"     && derivedColumn1@adm_nonadm_indicator == aggregate1@adm_nonadm_indicator",
 				"     && derivedColumn1@treaty_year == aggregate1@treaty_year",
 				"     && derivedColumn1@bordereaux_month == aggregate1@bordereaux_month,",
 				"     joinType:'left',",
