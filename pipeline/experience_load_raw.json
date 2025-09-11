@@ -1,0 +1,85 @@
+{
+	"name": "experience_load_raw",
+	"properties": {
+		"description": "Weekly load from the Northern Re database",
+		"activities": [
+			{
+				"name": "bau_fmi",
+				"description": "Converts the JSON output of the financial model inputs into the standardized layout of the data lake",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "bau_fmi",
+						"type": "DataFlowReference",
+						"parameters": {
+							"queryDate": {
+								"value": "'@{pipeline().TriggerTime}'",
+								"type": "Expression"
+							}
+						},
+						"datasetParameters": {
+							"source1": {
+								"json_FileName": {
+									"value": "@{pipeline().TriggerTime}.json",
+									"type": "Expression"
+								}
+							},
+							"sink1": {
+								"FileName": {
+									"value": "@{pipeline().TriggerTime}.parquet",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"parameters": {
+			"DatabricksInstance": {
+				"type": "string",
+				"defaultValue": "6792391718158368.8"
+			},
+			"DatabricksPAT": {
+				"type": "string",
+				"defaultValue": "dapi3db3696b88221f44d71935ba6399f403-3"
+			},
+			"DatabricksWarehouse": {
+				"type": "string",
+				"defaultValue": "2567c85ef27cadcd"
+			},
+			"DatabricksCatalog": {
+				"type": "string",
+				"defaultValue": "vellum_data"
+			},
+			"DatabricksSchema": {
+				"type": "string",
+				"defaultValue": "treefrog"
+			},
+			"DatabricksQuery": {
+				"type": "string",
+				"defaultValue": "SELECT * FROM financial_model_inputs"
+			}
+		},
+		"folder": {
+			"name": "Jaffa/Financial Model Inputs"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-05-30T21:01:59Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
