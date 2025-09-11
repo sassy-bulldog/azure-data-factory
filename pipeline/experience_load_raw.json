@@ -117,7 +117,7 @@
 		"variables": {
 			"queryDate": {
 				"type": "String",
-				"defaultValue": "'2025-09-06T01:00:00.2791978Z'"
+				"defaultValue": "2025-09-06T01:00:00.2791978Z"
 			}
 		},
 		"folder": {
