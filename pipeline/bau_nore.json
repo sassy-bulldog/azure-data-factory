@@ -1,60 +1,8 @@
 {
-	"name": "bau_fmi",
+	"name": "bau_nore",
 	"properties": {
 		"description": "Weekly load from the Northern Re database",
 		"activities": [
-			{
-				"name": "bau_fmi",
-				"description": "Converts the JSON output of the financial model inputs into the standardized layout of the data lake",
-				"type": "ExecuteDataFlow",
-				"dependsOn": [
-					{
-						"activity": "CopyResults",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"dataflow": {
-						"referenceName": "bau_fmi",
-						"type": "DataFlowReference",
-						"parameters": {
-							"queryDate": {
-								"value": "'@{pipeline().TriggerTime}'",
-								"type": "Expression"
-							}
-						},
-						"datasetParameters": {
-							"source1": {
-								"json_FileName": {
-									"value": "@{pipeline().TriggerTime}.json",
-									"type": "Expression"
-								}
-							},
-							"sink1": {
-								"FileName": {
-									"value": "@{pipeline().TriggerTime}.parquet",
-									"type": "Expression"
-								}
-							}
-						}
-					},
-					"compute": {
-						"coreCount": 8,
-						"computeType": "General"
-					},
-					"traceLevel": "Fine"
-				}
-			},
 			{
 				"name": "CopyResults",
 				"description": "Copies the JSON output of the Data Bricks server on Northern Re.",
