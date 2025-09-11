@@ -39,16 +39,14 @@
 					"name": "aggregate1"
 				},
 				{
-					"name": "filter1"
-				},
-				{
-					"name": "assert1"
-				},
-				{
 					"name": "join1"
 				},
 				{
 					"name": "select1"
+				},
+				{
+					"name": "assert1",
+					"description": "Assert that now unique keys have duplicate records"
 				}
 			],
 			"scriptLines": [
@@ -92,17 +90,14 @@
 				"          treaty_year,",
 				"          bordereaux_month),",
 				"     row_count = count()) ~> aggregate1",
-				"aggregate1 filter(row_count > 1) ~> filter1",
-				"filter1 assert(expectTrue(isNull(row_count), false, 'uniqueKeys'),",
-				"     abort: true) ~> assert1",
-				"derivedColumn1, assert1 join(derivedColumn1@nre_feed == aggregate1@nre_feed",
+				"derivedColumn1, aggregate1 join(derivedColumn1@nre_feed == aggregate1@nre_feed",
 				"     && derivedColumn1@treaty_year == aggregate1@treaty_year",
 				"     && derivedColumn1@bordereaux_month == aggregate1@bordereaux_month,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> join1",
-				"join1 select(mapColumn(",
+				"assert1 select(mapColumn(",
 				"          statement_id,",
 				"          status,",
 				"          rows,",
@@ -119,11 +114,12 @@
 				"          tf_assumed_ss,",
 				"          v_created,",
 				"          FileName,",
-				"          query_date,",
-				"          row_count",
+				"          query_date",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select1",
+				"join1 assert(expectTrue(row_count <= 1, false, 'assert1', row_count > 1, \"Unique key check failed\"),",
+				"     abort: true) ~> assert1",
 				"select1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
