@@ -122,6 +122,8 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select1",
 				"join1 assert(expectTrue(row_count <= 1, false, 'assert1', row_count > 1, \"Unique key check failed\"),",
+				"     expectTrue(!isNull(v_created), false, 'assert2', null, \"Assert that v_created is populated for all rows\"),",
+				"     expectTrue(!isNull(query_date), false, 'assert3', null, \"Assert that query_date is populated for all rows\"),",
 				"     abort: true) ~> assert1",
 				"select1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
