@@ -29,7 +29,7 @@
 						"type": "DataFlowReference",
 						"parameters": {
 							"queryDate": {
-								"value": "'@{pipeline().TriggerTime}'",
+								"value": "'@{'2025-09-06T01:00:00.2791978Z'}'",
 								"type": "Expression"
 							}
 						},
@@ -59,6 +59,8 @@
 				"name": "Get NoRe Data",
 				"description": "Extract Nothern Re data from Databricks",
 				"type": "ExecutePipeline",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [],
 				"policy": {
 					"secureInput": false
@@ -76,7 +78,11 @@
 						"DatabricksWarehouse": "2567c85ef27cadcd",
 						"DatabricksCatalog": "vellum_data",
 						"DatabricksSchema": "treefrog",
-						"DatabricksQuery": "SELECT * FROM financial_model_inputs"
+						"DatabricksQuery": "SELECT * FROM financial_model_inputs",
+						"queryDate": {
+							"value": "@pipeline().TriggerTime",
+							"type": "Expression"
+						}
 					}
 				}
 			}
