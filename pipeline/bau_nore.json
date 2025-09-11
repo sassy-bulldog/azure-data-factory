@@ -107,7 +107,7 @@
 						"type": "DatasetReference",
 						"parameters": {
 							"json_FileName": {
-								"value": "@{pipeline().TriggerTime}.json",
+								"value": "@{pipeline().parameters.queryDate}.json",
 								"type": "Expression"
 							}
 						}
