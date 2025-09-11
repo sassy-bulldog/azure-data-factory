@@ -18,7 +18,7 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "nore_fmi_parquet",
+						"referenceName": "fmi_parquet",
 						"type": "DatasetReference"
 					},
 					"name": "sink1",
