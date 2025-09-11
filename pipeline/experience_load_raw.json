@@ -59,8 +59,6 @@
 				"name": "Get NoRe Data",
 				"description": "Extract Nothern Re data from Databricks",
 				"type": "ExecutePipeline",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Set queryDate",
@@ -97,8 +95,6 @@
 				"name": "Set queryDate",
 				"description": "Captures the pipeline trigger time as the query date for future use.",
 				"type": "SetVariable",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [],
 				"policy": {
 					"secureOutput": false,
