@@ -1,8 +1,8 @@
 {
-	"name": "bau_fmi",
+	"name": "bau_nore_raw",
 	"properties": {
 		"folder": {
-			"name": "NorthernRe/Financial Model Inputs"
+			"name": "Jaffa/Financial Model Inputs"
 		},
 		"type": "MappingDataFlow",
 		"typeProperties": {

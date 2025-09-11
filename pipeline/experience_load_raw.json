@@ -4,10 +4,17 @@
 		"description": "Weekly load from the Northern Re database",
 		"activities": [
 			{
-				"name": "bau_fmi",
+				"name": "bau_nore_raw",
 				"description": "Converts the JSON output of the financial model inputs into the standardized layout of the data lake",
 				"type": "ExecuteDataFlow",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Get NoRe Data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -18,7 +25,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "bau_fmi",
+						"referenceName": "bau_nore_raw",
 						"type": "DataFlowReference",
 						"parameters": {
 							"queryDate": {
@@ -47,34 +54,33 @@
 					},
 					"traceLevel": "Fine"
 				}
+			},
+			{
+				"name": "Get NoRe Data",
+				"description": "Extract Nothern Re data from Databricks",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "bau_nore",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"DatabricksInstance": "6792391718158368.8",
+						"DatabricksPAT": "dapi3db3696b88221f44d71935ba6399f403-3",
+						"DatabricksWarehouse": "2567c85ef27cadcd",
+						"DatabricksCatalog": "vellum_data",
+						"DatabricksSchema": "treefrog",
+						"DatabricksQuery": "SELECT * FROM financial_model_inputs"
+					}
+				}
 			}
 		],
-		"parameters": {
-			"DatabricksInstance": {
-				"type": "string",
-				"defaultValue": "6792391718158368.8"
-			},
-			"DatabricksPAT": {
-				"type": "string",
-				"defaultValue": "dapi3db3696b88221f44d71935ba6399f403-3"
-			},
-			"DatabricksWarehouse": {
-				"type": "string",
-				"defaultValue": "2567c85ef27cadcd"
-			},
-			"DatabricksCatalog": {
-				"type": "string",
-				"defaultValue": "vellum_data"
-			},
-			"DatabricksSchema": {
-				"type": "string",
-				"defaultValue": "treefrog"
-			},
-			"DatabricksQuery": {
-				"type": "string",
-				"defaultValue": "SELECT * FROM financial_model_inputs"
-			}
-		},
 		"folder": {
 			"name": "Jaffa/Financial Model Inputs"
 		},

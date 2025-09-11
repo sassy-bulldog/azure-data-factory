@@ -7,7 +7,7 @@
 		"pipelines": [
 			{
 				"pipelineReference": {
-					"referenceName": "bau_fmi",
+					"referenceName": "bau_nore",
 					"type": "PipelineReference"
 				},
 				"parameters": {
