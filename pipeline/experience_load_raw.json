@@ -7,8 +7,6 @@
 				"name": "bau_nore_raw",
 				"description": "Converts the JSON output of the financial model inputs into the standardized layout of the data lake",
 				"type": "ExecuteDataFlow",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Get NoRe Data",
@@ -38,13 +36,13 @@
 						"datasetParameters": {
 							"source1": {
 								"json_FileName": {
-									"value": "@{pipeline().TriggerTime}.json",
+									"value": "@{variables('queryDate')}.json",
 									"type": "Expression"
 								}
 							},
 							"sink1": {
 								"FileName": {
-									"value": "@{pipeline().TriggerTime}.parquet",
+									"value": "@{variables('queryDate')}.parquet",
 									"type": "Expression"
 								}
 							}
@@ -89,7 +87,7 @@
 						"DatabricksSchema": "treefrog",
 						"DatabricksQuery": "SELECT * FROM financial_model_inputs",
 						"queryDate": {
-							"value": "@pipeline().TriggerTime",
+							"value": "@variables('queryDate')",
 							"type": "Expression"
 						}
 					}
@@ -99,6 +97,8 @@
 				"name": "Set queryDate",
 				"description": "Captures the pipeline trigger time as the query date for future use.",
 				"type": "SetVariable",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [],
 				"policy": {
 					"secureOutput": false,
