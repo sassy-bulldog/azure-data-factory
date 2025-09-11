@@ -120,7 +120,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select1",
-				"join1 assert(expectTrue(row_count <= 1, false, 'assert1', row_count > 1, \"Unique key check failed\"),",
+				"aggregate1 assert(expectTrue(row_count <= 1, false, 'assert1', row_count > 1, \"Unique key check failed\"),",
 				"     abort: true) ~> assert1",
 				"select1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
