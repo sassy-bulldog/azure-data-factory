@@ -23,30 +23,6 @@
 			"type": "string",
 			"defaultValue": "https://developmentdls.dfs.core.windows.net/"
 		},
-		"maishukinyoubi_properties_bau_fmi_parameters_DatabricksInstance": {
-			"type": "string",
-			"defaultValue": "6792391718158368.8"
-		},
-		"maishukinyoubi_properties_bau_fmi_parameters_DatabricksPAT": {
-			"type": "string",
-			"defaultValue": "dapi3db3696b88221f44d71935ba6399f403-3"
-		},
-		"maishukinyoubi_properties_bau_fmi_parameters_DatabricksWarehouse": {
-			"type": "string",
-			"defaultValue": "2567c85ef27cadcd"
-		},
-		"maishukinyoubi_properties_bau_fmi_parameters_DatabricksCatalog": {
-			"type": "string",
-			"defaultValue": "vellum_data"
-		},
-		"maishukinyoubi_properties_bau_fmi_parameters_DatabricksSchema": {
-			"type": "string",
-			"defaultValue": "treefrog"
-		},
-		"maishukinyoubi_properties_bau_fmi_parameters_DatabricksQuery": {
-			"type": "string",
-			"defaultValue": "SELECT * FROM financial_model_inputs"
-		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -85,24 +61,6 @@
 					},
 					"AzureDataLakeStorage_properties_typeProperties_url": {
 						"value": "[parameters('AzureDataLakeStorage_properties_typeProperties_url')]"
-					},
-					"maishukinyoubi_properties_bau_fmi_parameters_DatabricksInstance": {
-						"value": "[parameters('maishukinyoubi_properties_bau_fmi_parameters_DatabricksInstance')]"
-					},
-					"maishukinyoubi_properties_bau_fmi_parameters_DatabricksPAT": {
-						"value": "[parameters('maishukinyoubi_properties_bau_fmi_parameters_DatabricksPAT')]"
-					},
-					"maishukinyoubi_properties_bau_fmi_parameters_DatabricksWarehouse": {
-						"value": "[parameters('maishukinyoubi_properties_bau_fmi_parameters_DatabricksWarehouse')]"
-					},
-					"maishukinyoubi_properties_bau_fmi_parameters_DatabricksCatalog": {
-						"value": "[parameters('maishukinyoubi_properties_bau_fmi_parameters_DatabricksCatalog')]"
-					},
-					"maishukinyoubi_properties_bau_fmi_parameters_DatabricksSchema": {
-						"value": "[parameters('maishukinyoubi_properties_bau_fmi_parameters_DatabricksSchema')]"
-					},
-					"maishukinyoubi_properties_bau_fmi_parameters_DatabricksQuery": {
-						"value": "[parameters('maishukinyoubi_properties_bau_fmi_parameters_DatabricksQuery')]"
 					}
 				}
 			},
