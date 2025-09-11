@@ -7,6 +7,8 @@
 				"name": "bau_nore_raw",
 				"description": "Converts the JSON output of the financial model inputs into the standardized layout of the data lake",
 				"type": "ExecuteDataFlow",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Get NoRe Data",
@@ -29,7 +31,7 @@
 						"type": "DataFlowReference",
 						"parameters": {
 							"queryDate": {
-								"value": "'@{'2025-09-06T01:00:00.2791978Z'}'",
+								"value": "'@{variables('queryDate')}'",
 								"type": "Expression"
 							}
 						},
@@ -61,7 +63,14 @@
 				"type": "ExecutePipeline",
 				"state": "Inactive",
 				"onInactiveMarkAs": "Succeeded",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Set queryDate",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"secureInput": false
 				},
@@ -85,8 +94,32 @@
 						}
 					}
 				}
+			},
+			{
+				"name": "Set queryDate",
+				"description": "Captures the pipeline trigger time as the query date for future use.",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "queryDate",
+					"value": {
+						"value": "@pipeline().TriggerTime",
+						"type": "Expression"
+					}
+				}
 			}
 		],
+		"variables": {
+			"queryDate": {
+				"type": "String",
+				"defaultValue": "'2025-09-06T01:00:00.2791978Z'"
+			}
+		},
 		"folder": {
 			"name": "Jaffa/Financial Model Inputs"
 		},
