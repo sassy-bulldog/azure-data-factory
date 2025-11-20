@@ -1,0 +1,36 @@
+{
+	"name": "AzureSQL_NorthernRe_ParameterizedTable",
+	"properties": {
+		"description": "Uses the two parameters, tableschema and tablename, to extract data from the Northern Re SQL server.",
+		"linkedServiceName": {
+			"referenceName": "AzureSQL_NorthernRe",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"TableName": {
+				"type": "string",
+				"defaultValue": "refBronzeTable"
+			},
+			"TableSchema": {
+				"type": "string",
+				"defaultValue": "dbo"
+			}
+		},
+		"folder": {
+			"name": "Northern Re"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().TableSchema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().TableName",
+				"type": "Expression"
+			}
+		}
+	}
+}
