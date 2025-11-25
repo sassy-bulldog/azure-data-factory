@@ -51,7 +51,7 @@
 			],
 			"scriptLines": [
 				"parameters{",
-				"     queryDate as string ('2025-09-06T01:00:00.2791978Z')",
+				"     queryDate as string ('2025-09-27T01:00:00.484978Z')",
 				"}",
 				"source(output(",
 				"          statement_id as string,",
