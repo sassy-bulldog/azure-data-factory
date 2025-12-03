@@ -30,7 +30,7 @@
 			],
 			"transformations": [
 				{
-					"name": "flatten1"
+					"name": "flattenrows"
 				},
 				{
 					"name": "derivedColumn1"
@@ -47,6 +47,12 @@
 				{
 					"name": "assert1",
 					"description": "Assert that now unique keys have duplicate records"
+				},
+				{
+					"name": "flattenschema"
+				},
+				{
+					"name": "crossjoin"
 				}
 			],
 			"scriptLines": [
@@ -71,8 +77,8 @@
 				"          rows = result.data_array",
 				"     ),",
 				"     skipDuplicateMapInputs: false,",
-				"     skipDuplicateMapOutputs: false) ~> flatten1",
-				"flatten1 derive(nre_feed = rows[1],",
+				"     skipDuplicateMapOutputs: false) ~> flattenrows",
+				"crossjoin derive(nre_feed = rows[1],",
 				"          bordereaux_month = toDate(rows[2],\"M/d/yy\"),",
 				"          treaty_year = toInteger(rows[3]),",
 				"          isAdmitted = equalsIgnoreCase(rows[4], \"Admitted\"),",
@@ -104,7 +110,7 @@
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> join1",
 				"assert1 select(mapColumn(",
-				"          statement_id,",
+				"          statement_id = flattenschema@statement_id,",
 				"          status,",
 				"          nre_feed = derivedColumn1@nre_feed,",
 				"          isAdmitted = derivedColumn1@isAdmitted,",
@@ -131,6 +137,21 @@
 				"     expectTrue(!isNull(derivedColumn1@nre_feed), false, 'assert5', null, \"Assert that nre_feed is populated for all rows\"),",
 				"     expectTrue(!isNull(derivedColumn1@treaty_year), false, 'assert6', null, \"Assert that treaty_year is populated for all rows\"),",
 				"     abort: true) ~> assert1",
+				"source1 foldDown(unroll(manifest.schema.columns),",
+				"     mapColumn(",
+				"          statement_id,",
+				"          name = manifest.schema.columns.name,",
+				"          type_text = manifest.schema.columns.type_text,",
+				"          type_name = manifest.schema.columns.type_name,",
+				"          position = manifest.schema.columns.position",
+				"     ),",
+				"     skipDuplicateMapInputs: false,",
+				"     skipDuplicateMapOutputs: false) ~> flattenschema",
+				"flattenschema, flattenrows join(flattenschema@statement_id == flattenrows@statement_id,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> crossjoin",
 				"select1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
