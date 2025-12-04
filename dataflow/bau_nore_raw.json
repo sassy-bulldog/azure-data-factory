@@ -131,7 +131,7 @@
 				"          tf_assumed_expected_losses = pvt_tf_assumed_expected_losses,",
 				"          tf_assumed_ss = pvt_tf_assumed_ss,",
 				"          v_created = pvt_v_created,",
-				"          FileName,",
+				"          FileName = {FileName },",
 				"          query_date",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
