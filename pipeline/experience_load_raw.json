@@ -59,6 +59,8 @@
 				"name": "Get NoRe Data",
 				"description": "Extract Nothern Re data from Databricks",
 				"type": "ExecutePipeline",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Set queryDate",
@@ -79,7 +81,6 @@
 					"waitOnCompletion": true,
 					"parameters": {
 						"DatabricksInstance": "6792391718158368.8",
-						"DatabricksPAT": "dapi3db3696b88221f44d71935ba6399f403-3",
 						"DatabricksWarehouse": "2567c85ef27cadcd",
 						"DatabricksCatalog": "vellum_data",
 						"DatabricksSchema": "treefrog",
@@ -103,10 +104,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "queryDate",
-					"value": {
-						"value": "@pipeline().TriggerTime",
-						"type": "Expression"
-					}
+					"value": "2025-09-27T01:00:00.484978Z"
 				}
 			}
 		],
