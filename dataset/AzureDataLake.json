@@ -5,6 +5,9 @@
 			"referenceName": "AzureDataLakeStorage",
 			"type": "LinkedServiceReference"
 		},
+		"folder": {
+			"name": "Jaffa"
+		},
 		"annotations": [],
 		"type": "Binary",
 		"typeProperties": {
