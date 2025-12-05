@@ -135,7 +135,7 @@
 				"          FileName = {FileName },",
 				"          query_date,",
 				"          adm_nonadm_indicator = pvt_adm_nonadm_indicator,",
-				"          isAdmitted = derivedColumn1@{isAdmitted },",
+				"          isAdmitted = {isAdmitted },",
 				"          program_admin = pvt_program_admin",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
