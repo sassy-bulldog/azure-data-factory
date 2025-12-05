@@ -174,7 +174,7 @@
 					"method": "GET",
 					"headers": {
 						"Authorization": {
-							"value": "Bearer @{pipeline().parameters.DatabricksPAT}",
+							"value": "Bearer @{activity('Get PAT').output.value}",
 							"type": "Expression"
 						},
 						"Content-Type": "application/json"
