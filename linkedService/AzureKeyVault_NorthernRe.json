@@ -1,0 +1,11 @@
+{
+	"name": "AzureKeyVault_NorthernRe",
+	"properties": {
+		"description": "Key Vault containing secrets, PATs, etc. shared by Northern Re",
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://NorthernReDatabricks.vault.azure.net/"
+		}
+	}
+}

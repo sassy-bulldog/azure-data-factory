@@ -1,5 +1,5 @@
 {
-	"name": "bau_nore",
+	"name": "nore_clone_bordereax",
 	"properties": {
 		"description": "Weekly load from the Northern Re database",
 		"activities": [
@@ -118,14 +118,7 @@
 				"name": "SubmitSQLStatement",
 				"description": "Submits our SQL Statement to Azure Data Bricks",
 				"type": "WebActivity",
-				"dependsOn": [
-					{
-						"activity": "Get PAT",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -138,7 +131,7 @@
 					"method": "POST",
 					"headers": {
 						"Authorization": {
-							"value": "Bearer @{activity('Get PAT').output.value}",
+							"value": "Bearer @{pipeline().parameters.DatabricksPAT}",
 							"type": "Expression"
 						},
 						"Content-Type": "application/json"
@@ -184,52 +177,23 @@
 						"type": "Expression"
 					}
 				}
-			},
-			{
-				"name": "Get PAT",
-				"description": "Gets the Personal Access Token from Azure Key Vault",
-				"type": "WebActivity",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"method": "GET",
-					"linkedServices": [
-						{
-							"referenceName": "AzureKeyVault_NorthernRe",
-							"type": "LinkedServiceReference"
-						}
-					],
-					"url": "https://northernredatabricks.vault.azure.net//secrets/PAT?api-version=7.5",
-					"authentication": {
-						"type": "MSI",
-						"resource": "https://vault.azure.net"
-					}
-				}
 			}
 		],
 		"parameters": {
 			"DatabricksInstance": {
-				"type": "string",
-				"defaultValue": "6792391718158368.8"
+				"type": "string"
+			},
+			"DatabricksPAT": {
+				"type": "string"
 			},
 			"DatabricksWarehouse": {
-				"type": "string",
-				"defaultValue": "2567c85ef27cadcd"
+				"type": "string"
 			},
 			"DatabricksCatalog": {
-				"type": "string",
-				"defaultValue": "vellum_data"
+				"type": "string"
 			},
 			"DatabricksSchema": {
-				"type": "string",
-				"defaultValue": "treefrog"
+				"type": "string"
 			},
 			"DatabricksQuery": {
 				"type": "string",
@@ -241,7 +205,7 @@
 			}
 		},
 		"folder": {
-			"name": "NorthernRe/Financial Model Inputs"
+			"name": "NorthernRe/Bordereaux"
 		},
 		"annotations": [],
 		"lastPublishTime": "2025-05-30T21:01:59Z"
