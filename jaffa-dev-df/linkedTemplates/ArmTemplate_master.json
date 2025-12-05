@@ -11,6 +11,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'AzureDataLakeStorage'"
 		},
+		"AzureSQL_NorthernRe_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'AzureSQL_NorthernRe'"
+		},
 		"Development LDS_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'Development LDS'"
@@ -22,6 +26,22 @@
 		"AzureDataLakeStorage_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://developmentdls.dfs.core.windows.net/"
+		},
+		"AzureKeyVault_NorthernRe_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://NorthernReDatabricks.vault.azure.net/"
+		},
+		"AzureSQL_NorthernRe_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "noreserver.database.windows.net"
+		},
+		"AzureSQL_NorthernRe_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "NoreDB"
+		},
+		"AzureSQL_NorthernRe_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "noreuser"
 		},
 		"containerUri": {
 			"type": "string",
@@ -53,6 +73,9 @@
 					"AzureDataLakeStorage_accountKey": {
 						"value": "[parameters('AzureDataLakeStorage_accountKey')]"
 					},
+					"AzureSQL_NorthernRe_password": {
+						"value": "[parameters('AzureSQL_NorthernRe_password')]"
+					},
 					"Development LDS_connectionString": {
 						"value": "[parameters('Development LDS_connectionString')]"
 					},
@@ -61,6 +84,18 @@
 					},
 					"AzureDataLakeStorage_properties_typeProperties_url": {
 						"value": "[parameters('AzureDataLakeStorage_properties_typeProperties_url')]"
+					},
+					"AzureKeyVault_NorthernRe_properties_typeProperties_baseUrl": {
+						"value": "[parameters('AzureKeyVault_NorthernRe_properties_typeProperties_baseUrl')]"
+					},
+					"AzureSQL_NorthernRe_properties_typeProperties_server": {
+						"value": "[parameters('AzureSQL_NorthernRe_properties_typeProperties_server')]"
+					},
+					"AzureSQL_NorthernRe_properties_typeProperties_database": {
+						"value": "[parameters('AzureSQL_NorthernRe_properties_typeProperties_database')]"
+					},
+					"AzureSQL_NorthernRe_properties_typeProperties_userName": {
+						"value": "[parameters('AzureSQL_NorthernRe_properties_typeProperties_userName')]"
 					}
 				}
 			},

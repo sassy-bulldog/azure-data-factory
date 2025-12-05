@@ -8,6 +8,9 @@
 		"AzureDataLakeStorage_accountKey": {
 			"value": ""
 		},
+		"AzureSQL_NorthernRe_password": {
+			"value": ""
+		},
 		"Development LDS_connectionString": {
 			"value": ""
 		},
@@ -16,6 +19,18 @@
 		},
 		"AzureDataLakeStorage_properties_typeProperties_url": {
 			"value": "https://developmentdls.dfs.core.windows.net/"
+		},
+		"AzureKeyVault_NorthernRe_properties_typeProperties_baseUrl": {
+			"value": "https://NorthernReDatabricks.vault.azure.net/"
+		},
+		"AzureSQL_NorthernRe_properties_typeProperties_server": {
+			"value": "noreserver.database.windows.net"
+		},
+		"AzureSQL_NorthernRe_properties_typeProperties_database": {
+			"value": "NoreDB"
+		},
+		"AzureSQL_NorthernRe_properties_typeProperties_userName": {
+			"value": "noreuser"
 		},
 		"containerUri": {
 			"value": ""
