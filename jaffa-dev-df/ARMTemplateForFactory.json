@@ -309,6 +309,61 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/cleanup')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Clean bad files by date",
+				"activities": [
+					{
+						"name": "Delete1",
+						"type": "Delete",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "AzureDataLake",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"logStorageSettings": {
+								"linkedServiceName": {
+									"referenceName": "AzureDataLakeStorage",
+									"type": "LinkedServiceReference"
+								},
+								"path": "development-data-lake/bronze/northernre/treefrog_snapshots/logs"
+							},
+							"enableLogging": true,
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"wildcardFileName": "2025-11-22*.parquet",
+								"enablePartitionDiscovery": false
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "Jaffa/Financial Model Inputs"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AzureDataLake')]",
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/experience_load_raw')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -358,7 +413,8 @@
 											"type": "Expression"
 										}
 									}
-								}
+								},
+								"linkedServiceParameters": {}
 							},
 							"staging": {},
 							"compute": {
@@ -416,7 +472,7 @@
 						"typeProperties": {
 							"variableName": "queryDate",
 							"value": {
-								"value": "@string(pipeline().TriggerTime)",
+								"value": "@concat(\n    formatDateTime(\n        coalesce(pipeline().TriggerTime, utcNow()), \n        'yyyy-MM-dd''T''HH:mm:ss'\n    ),\n    'Z'\n)",
 								"type": "Expression"
 							}
 						}
@@ -719,6 +775,33 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/AzureDataLake')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorage",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Jaffa"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "**",
+						"folderPath": "bronze/northernre/treefrog_snapshots",
+						"fileSystem": "development-data-lake"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/AzureDatabricks')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -804,7 +887,7 @@
 				"parameters": {
 					"FileName": {
 						"type": "string",
-						"defaultValue": "2025-05-30T14:08:33.3100213Z.parquet.json"
+						"defaultValue": "2025-11-29T02:00:01Z.parquet"
 					}
 				},
 				"folder": {
@@ -1053,7 +1136,7 @@
 				"parameters": {
 					"json_FileName": {
 						"type": "String",
-						"defaultValue": "2025-09-27T01:00:00.484978Z.json"
+						"defaultValue": "2025-11-15T02:00:01Z.json"
 					}
 				},
 				"folder": {
@@ -1489,11 +1572,14 @@
 						},
 						{
 							"name": "fixColumnNames"
+						},
+						{
+							"name": "cast1"
 						}
 					],
 					"scriptLines": [
 						"parameters{",
-						"     queryDate as string ('2025-09-27T01:00:00.484978Z.json')",
+						"     queryDate as string (toString('2025-11-29T02:00:01Z'))",
 						"}",
 						"source(output(",
 						"          statement_id as string,",
@@ -1528,15 +1614,15 @@
 						"    $queryDate,\r",
 						"    '.parquet'\r",
 						")) ~> derivedColumn1",
-						"derivedColumn1 aggregate(groupBy(pvt_nre_feed,",
-						"          pvt_adm_nonadm_indicator,",
+						"cast1 aggregate(groupBy(pvt_nre_feed,",
 						"          pvt_treaty_year,",
+						"          pvt_adm_nonadm_indicator,",
 						"          pvt_bordereaux_month),",
 						"     row_count = count()) ~> aggregate1",
-						"derivedColumn1, aggregate1 join(pivot1@pvt_nre_feed == aggregate1@pvt_nre_feed",
+						"cast1, aggregate1 join(pivot1@pvt_nre_feed == aggregate1@pvt_nre_feed",
 						"     && pivot1@pvt_adm_nonadm_indicator == aggregate1@pvt_adm_nonadm_indicator",
-						"     && pivot1@pvt_treaty_year == aggregate1@pvt_treaty_year",
-						"     && pivot1@pvt_bordereaux_month == aggregate1@pvt_bordereaux_month,",
+						"     && cast1@pvt_treaty_year == aggregate1@pvt_treaty_year",
+						"     && cast1@pvt_bordereaux_month == aggregate1@pvt_bordereaux_month,",
 						"     joinType:'left',",
 						"     matchType:'exact',",
 						"     ignoreSpaces: false,",
@@ -1545,8 +1631,8 @@
 						"          statement_id,",
 						"          status,",
 						"          nre_feed = pivot1@pvt_nre_feed,",
-						"          bordereaux_month = pivot1@pvt_bordereaux_month,",
-						"          treaty_year = pivot1@pvt_treaty_year,",
+						"          bordereaux_month = cast1@pvt_bordereaux_month,",
+						"          treaty_year = cast1@pvt_treaty_year,",
 						"          tf_assumed_paid_ulae = pvt_tf_assumed_paid_ulae,",
 						"          tf_assumed_paid_alae = pvt_tf_assumed_paid_alae,",
 						"          tf_assumed_collected_premium = pvt_tf_assumed_collected_premium,",
@@ -1564,12 +1650,12 @@
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> select1",
-						"join1 assert(expectTrue(row_count <= 1, false, 'assert1', row_count > 1, \"Unique key check failed\"),",
-						"     expectTrue(!isNull(pvt_v_created), false, 'assert2', null, \"Assert that v_created is populated for all rows\"),",
-						"     expectTrue(!isNull(query_date), false, 'assert3', null, \"Assert that query_date is populated for all rows\"),",
-						"     expectTrue(!isNull(pivot1@pvt_bordereaux_month), false, 'assert4', null, \"Assert that bordereaux_month is populated for all rows\"),",
-						"     expectTrue(!isNull(pivot1@pvt_nre_feed), false, 'assert5', null, \"Assert that nre_feed is populated for all rows\"),",
-						"     expectTrue(!isNull(pivot1@pvt_treaty_year), false, 'assert6', null, \"Assert that treaty_year is populated for all rows\"),",
+						"join1 assert(expectTrue(row_count <= 1, false, 'unique_key', row_count > 1, \"Unique key check failed\"),",
+						"     expectTrue(!isNull(pvt_v_created), false, 'v_createdNotNull', null, \"Assert that v_created is populated for all rows\"),",
+						"     expectTrue(!isNull(query_date), false, 'query_dateNotNull', null, \"Assert that query_date is populated for all rows\"),",
+						"     expectTrue(!isNull(cast1@pvt_bordereaux_month), false, 'bordereaux_monthNotNull', null, \"Assert that bordereaux_month is populated for all rows\"),",
+						"     expectTrue(!isNull(pivot1@pvt_nre_feed), false, 'nre_feedNotNull', null, \"Assert that nre_feed is populated for all rows\"),",
+						"     expectTrue(!isNull(cast1@pvt_treaty_year), false, 'treaty_yearNotNull', null, \"Assert that treaty_year is populated for all rows\"),",
 						"     abort: true) ~> assert1",
 						"source1 foldDown(unroll(manifest.schema.columns),",
 						"     mapColumn(",
@@ -1602,6 +1688,8 @@
 						"        in(['v_created', 'bordereaux_month'], fixedName)\r",
 						"    ),\r",
 						"        toString(case(\r",
+						"            isInteger(rows[position + 1]),\r",
+						"            addDays(toDate('1899-12-30'), toInteger(rows[position + 1])),\r",
 						"            !isNull(toDate(rows[position + 1])),\r",
 						"            toDate(rows[position + 1]),\r",
 						"            toDate(rows[position + 1], 'M/d/yy')\r",
@@ -1615,7 +1703,21 @@
 						"    name == 'bordereuax_month', 'bordereaux_month',\r",
 						"    name\r",
 						"),",
-						"          query_date = toTimestamp(substring($queryDate, 0, 23) + 'Z', 'yyyy-MM-dd\\'T\\'HH:mm:ss.SSS\\'Z\\'')) ~> fixColumnNames",
+						"          query_date = toTimestamp($queryDate, 'yyyy-MM-dd\\'T\\'HH:mm:ss\\'Z\\'', 'UTC', 'en-US')) ~> fixColumnNames",
+						"derivedColumn1 cast(output(",
+						"          pvt_bordereaux_month as date,",
+						"          pvt_treaty_year as long,",
+						"          pvt_tf_assumed_collected_premium as decimal(10,0),",
+						"          pvt_tf_assumed_earned_premium as decimal(10,0),",
+						"          pvt_tf_assumed_expected_losses as decimal(10,0),",
+						"          pvt_tf_assumed_gross_written_premium as decimal(10,0),",
+						"          pvt_tf_assumed_paid_alae as decimal(10,0),",
+						"          pvt_tf_assumed_paid_losses as decimal(10,0),",
+						"          pvt_tf_assumed_paid_ulae as decimal(10,0),",
+						"          pvt_tf_assumed_ss as decimal(10,0),",
+						"          pvt_v_created as date",
+						"     ),",
+						"     errors: true) ~> cast1",
 						"select1 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     input(",
