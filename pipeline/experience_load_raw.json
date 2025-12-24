@@ -59,6 +59,8 @@
 				"name": "Get NoRe Data",
 				"description": "Extract Nothern Re data from Databricks",
 				"type": "ExecutePipeline",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Set queryDate",
@@ -103,7 +105,7 @@
 				"typeProperties": {
 					"variableName": "queryDate",
 					"value": {
-						"value": "@string(pipeline().TriggerTime)",
+						"value": "@concat(\n    formatDateTime(\n        '2025-11-15T02:00:01Z', \n        'yyyy-MM-dd''T''HH:mm:ss'\n    ),\n    'Z'\n)",
 						"type": "Expression"
 					}
 				}

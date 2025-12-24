@@ -181,6 +181,8 @@
 				"        in(['v_created', 'bordereaux_month'], fixedName)\r",
 				"    ),\r",
 				"        toString(case(\r",
+				"            isInteger(rows[position + 1]),\r",
+				"            addDays(toDate('1899-12-30'), toInteger(rows[position + 1])),\r",
 				"            !isNull(toDate(rows[position + 1])),\r",
 				"            toDate(rows[position + 1]),\r",
 				"            toDate(rows[position + 1], 'M/d/yy')\r",
