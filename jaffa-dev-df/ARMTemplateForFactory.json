@@ -413,8 +413,7 @@
 											"type": "Expression"
 										}
 									}
-								},
-								"linkedServiceParameters": {}
+								}
 							},
 							"staging": {},
 							"compute": {
@@ -1699,9 +1698,9 @@
 						"flattenrows window(asc(statement_id, true),",
 						"     rowId = rowNumber()) ~> window1",
 						"flattenschema derive(fixedName = case(\r",
-						"    name == 'bordereau_month', 'bordereaux_month',\r",
-						"    name == 'bordereuax_month', 'bordereaux_month',\r",
-						"    name\r",
+						"    lower(name) == 'bordereau_month', 'bordereaux_month',\r",
+						"    lower(name) == 'bordereuax_month', 'bordereaux_month',\r",
+						"    lower(name)\r",
 						"),",
 						"          query_date = toTimestamp($queryDate, 'yyyy-MM-dd\\'T\\'HH:mm:ss\\'Z\\'', 'UTC', 'en-US')) ~> fixColumnNames",
 						"derivedColumn1 cast(output(",
