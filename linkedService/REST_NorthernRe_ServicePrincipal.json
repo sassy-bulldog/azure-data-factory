@@ -1,0 +1,44 @@
+{
+	"name": "REST_NorthernRe_ServicePrincipal",
+	"properties": {
+		"description": "A parameter‑driven REST Linked Service that authenticates using an Azure AD enterprise application (service principal) to securely access any Microsoft cloud service or resource.\nSupports dynamic base URLs, audiences (resource identifiers), tenants, and headers for broad compatibility across Microsoft APIs including Microsoft Graph, Azure Resource Manager, and workload‑specific service endpoints. Designed for reusable, cross‑service integration patterns that require centralized secret management and secure service‑principal authentication.",
+		"parameters": {
+			"TenantID": {
+				"type": "string",
+				"defaultValue": "ca024c7e-927f-4b78-9fcb-aae554c6ade1"
+			},
+			"ClientID": {
+				"type": "string",
+				"defaultValue": "c748753e-a9b8-42e7-8e81-37d5df61472a"
+			},
+			"ResourceID": {
+				"type": "string",
+				"defaultValue": "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d"
+			},
+			"BaseURL": {
+				"type": "string",
+				"defaultValue": "https://adb-6792391718158368.8.azuredatabricks.net/api/2.0/sql/statements/01f03d61-2b4d-195b-b610-aa353d2bc442"
+			}
+		},
+		"annotations": [],
+		"type": "RestService",
+		"typeProperties": {
+			"url": "@{linkedService().BaseURL}",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "AadServicePrincipal",
+			"servicePrincipalId": "@{linkedService().ClientID}",
+			"servicePrincipalKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVault_NorthernRe",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "ClientSecretValue"
+			},
+			"servicePrincipalCredentialType": "ServicePrincipalKey",
+			"tenant": "@{linkedService().TenantID}",
+			"aadResourceId": "@{linkedService().ResourceID}"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
+}
