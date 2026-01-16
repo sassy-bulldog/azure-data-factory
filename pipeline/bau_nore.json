@@ -87,7 +87,7 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "REST_ServicePrincipal",
+						"referenceName": "REST_NorthernRe_ServicePrincipal",
 						"type": "DatasetReference",
 						"parameters": {
 							"BaseURL": {

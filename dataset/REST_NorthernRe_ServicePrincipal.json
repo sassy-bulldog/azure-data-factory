@@ -1,5 +1,5 @@
 {
-	"name": "REST_ServicePrincipal",
+	"name": "REST_NorthernRe_ServicePrincipal",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "REST_NorthernRe_ServicePrincipal",

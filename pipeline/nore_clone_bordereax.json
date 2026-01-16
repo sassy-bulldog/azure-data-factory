@@ -91,7 +91,7 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "AzureDatabricks",
+						"referenceName": "REST_NorthernRe_ServicePrincipal",
 						"type": "DatasetReference",
 						"parameters": {
 							"BaseURL": {
