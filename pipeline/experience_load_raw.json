@@ -65,6 +65,12 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
+					},
+					{
+						"activity": "Get Northern Re Secrets",
+						"dependencyConditions": [
+							"Succeeded"
+						]
 					}
 				],
 				"policy": {
@@ -80,8 +86,8 @@
 					"parameters": {
 						"DatabricksInstance": "6792391718158368.8",
 						"DatabricksWarehouse": "2567c85ef27cadcd",
-						"DatabricksCatalog": "vellum_data",
-						"DatabricksSchema": "treefrog",
+						"DatabricksCatalog": "investor_jaffa",
+						"DatabricksSchema": "default",
 						"DatabricksQuery": "SELECT * FROM financial_model_inputs",
 						"queryDate": {
 							"value": "@variables('queryDate')",
@@ -106,6 +112,25 @@
 						"value": "@concat(\n    formatDateTime(\n        coalesce(pipeline().TriggerTime, utcNow()), \n        'yyyy-MM-dd''T''HH:mm:ss'\n    ),\n    'Z'\n)",
 						"type": "Expression"
 					}
+				}
+			},
+			{
+				"name": "Get Northern Re Secrets",
+				"description": "Should return the parameters needed to extract data from Northern Re",
+				"type": "ExecutePipeline",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "nore_secrets",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
 				}
 			}
 		],
