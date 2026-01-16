@@ -32,6 +32,18 @@
 		"AzureSQL_NorthernRe_properties_typeProperties_userName": {
 			"value": "noreuser"
 		},
+		"REST_NorthernRe_ServicePrincipal_properties_typeProperties_url": {
+			"value": "@{linkedService().BaseURL}"
+		},
+		"REST_NorthernRe_ServicePrincipal_properties_typeProperties_servicePrincipalId": {
+			"value": "@{linkedService().ClientID}"
+		},
+		"REST_NorthernRe_ServicePrincipal_properties_typeProperties_tenant": {
+			"value": "@{linkedService().TenantID}"
+		},
+		"REST_NorthernRe_ServicePrincipal_properties_typeProperties_aadResourceId": {
+			"value": "@{linkedService().ResourceID}"
+		},
 		"containerUri": {
 			"value": ""
 		},

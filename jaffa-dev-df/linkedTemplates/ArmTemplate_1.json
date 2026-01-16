@@ -13,6 +13,385 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/nore_clone_bordereax')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Weekly load from the Northern Re database",
+				"activities": [
+					{
+						"name": "CopyResults",
+						"description": "Copies the JSON output of the Data Bricks server on Northern Re.",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "CheckStatus",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "GET",
+								"additionalHeaders": {
+									"Authorization": {
+										"value": "Bearer @{pipeline().parameters.DatabricksPAT}",
+										"type": "Expression"
+									},
+									"Content-Type": "application/json"
+								},
+								"paginationRules": {
+									"supportRFC5988": "true"
+								}
+							},
+							"sink": {
+								"type": "JsonSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings",
+									"copyBehavior": "PreserveHierarchy"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"path": "$['statement_id']"
+										},
+										"sink": {
+											"path": "$['statement_id']"
+										}
+									},
+									{
+										"source": {
+											"path": "$['status']"
+										},
+										"sink": {
+											"path": "$['status']"
+										}
+									},
+									{
+										"source": {
+											"path": "$['manifest']"
+										},
+										"sink": {
+											"path": "$['manifest']"
+										}
+									},
+									{
+										"source": {
+											"path": "$['result']"
+										},
+										"sink": {
+											"path": "$['result']"
+										}
+									}
+								]
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "REST_NorthernRe_ServicePrincipal",
+								"type": "DatasetReference",
+								"parameters": {
+									"BaseURL": {
+										"value": "https://adb-@{pipeline().parameters.DatabricksInstance}.azuredatabricks.net/api/2.0/sql/statements/@{activity('SubmitSQLStatement').output.statement_id}",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "nore_fmi_json",
+								"type": "DatasetReference",
+								"parameters": {
+									"json_FileName": {
+										"value": "@{pipeline().parameters.queryDate}.json",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "SubmitSQLStatement",
+						"description": "Submits our SQL Statement to Azure Data Bricks",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {
+								"Authorization": {
+									"value": "Bearer @{pipeline().parameters.DatabricksPAT}",
+									"type": "Expression"
+								},
+								"Content-Type": "application/json"
+							},
+							"url": "https://adb-6792391718158368.8.azuredatabricks.net/api/2.0/sql/statements",
+							"body": {
+								"value": "@json(concat('{',\n  '\"warehouse_id\":\"', pipeline().parameters.DatabricksWarehouse, '\",',\n  '\"catalog\":\"', pipeline().parameters.DatabricksCatalog, '\",',\n  '\"schema\":\"', pipeline().parameters.DatabricksSchema, '\",',\n  '\"statement\":\"', pipeline().parameters.DatabricksQuery,'\",',\n'}'))",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "CheckStatus",
+						"description": "Checks the status of the submitted SQL statement on Azure Data Bricks",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "SubmitSQLStatement",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {
+								"Authorization": {
+									"value": "Bearer @{pipeline().parameters.DatabricksPAT}",
+									"type": "Expression"
+								},
+								"Content-Type": "application/json"
+							},
+							"url": {
+								"value": "https://adb-@{pipeline().parameters.DatabricksInstance}.azuredatabricks.net/api/2.0/sql/statements/@{activity('SubmitSQLStatement').output.statement_id}",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"DatabricksInstance": {
+						"type": "string"
+					},
+					"DatabricksPAT": {
+						"type": "string"
+					},
+					"DatabricksWarehouse": {
+						"type": "string"
+					},
+					"DatabricksCatalog": {
+						"type": "string"
+					},
+					"DatabricksSchema": {
+						"type": "string"
+					},
+					"DatabricksQuery": {
+						"type": "string",
+						"defaultValue": "SELECT * FROM financial_model_inputs"
+					},
+					"queryDate": {
+						"type": "string",
+						"defaultValue": "'2025-09-06T01:00:00.2791978Z'"
+					}
+				},
+				"folder": {
+					"name": "NorthernRe/Bordereaux"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-05-30T21:01:59Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/experience_load_raw')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Weekly load from the Northern Re database",
+				"activities": [
+					{
+						"name": "bau_nore_raw",
+						"description": "Converts the JSON output of the financial model inputs into the standardized layout of the data lake",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "Get NoRe Data",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "bau_nore_raw",
+								"type": "DataFlowReference",
+								"parameters": {
+									"queryDate": {
+										"value": "'@{variables('queryDate')}'",
+										"type": "Expression"
+									}
+								},
+								"datasetParameters": {
+									"source1": {
+										"json_FileName": {
+											"value": "@{variables('queryDate')}.json",
+											"type": "Expression"
+										}
+									},
+									"sink1": {
+										"FileName": {
+											"value": "@{variables('queryDate')}.parquet",
+											"type": "Expression"
+										}
+									}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "Get NoRe Data",
+						"description": "Extract Nothern Re data from Databricks",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Set queryDate",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Get Northern Re Secrets",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "bau_nore",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"DatabricksInstance": "6792391718158368.8",
+								"DatabricksWarehouse": "2567c85ef27cadcd",
+								"DatabricksCatalog": "investor_jaffa",
+								"DatabricksSchema": "default",
+								"DatabricksQuery": "SELECT * FROM financial_model_inputs",
+								"queryDate": {
+									"value": "@variables('queryDate')",
+									"type": "Expression"
+								},
+								"TenantID": "ca024c7e-927f-4b78-9fcb-aae554c6ade1",
+								"ClientID": "c748753e-a9b8-42e7-8e81-37d5df61472a",
+								"ResourceID": "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d"
+							}
+						}
+					},
+					{
+						"name": "Set queryDate",
+						"description": "Captures the pipeline trigger time as the query date for future use.",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "queryDate",
+							"value": {
+								"value": "@concat(\n    formatDateTime(\n        coalesce(pipeline().TriggerTime, utcNow()), \n        'yyyy-MM-dd''T''HH:mm:ss'\n    ),\n    'Z'\n)",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Get Northern Re Secrets",
+						"description": "Should return the parameters needed to extract data from Northern Re",
+						"type": "ExecutePipeline",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "nore_secrets",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"queryDate": {
+						"type": "String",
+						"defaultValue": "2025-08-02T01:00:00.6909793Z"
+					}
+				},
+				"folder": {
+					"name": "Jaffa/Financial Model Inputs"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-05-30T21:01:59Z"
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/maishukinyoubi')]",
 			"type": "Microsoft.DataFactory/factories/triggers",
 			"apiVersion": "2018-06-01",
@@ -50,7 +429,9 @@
 					}
 				}
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/experience_load_raw')]"
+			]
 		}
 	]
 }

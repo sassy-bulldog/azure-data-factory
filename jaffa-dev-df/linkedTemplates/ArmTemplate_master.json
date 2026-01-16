@@ -43,6 +43,22 @@
 			"type": "string",
 			"defaultValue": "noreuser"
 		},
+		"REST_NorthernRe_ServicePrincipal_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "@{linkedService().BaseURL}"
+		},
+		"REST_NorthernRe_ServicePrincipal_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "@{linkedService().ClientID}"
+		},
+		"REST_NorthernRe_ServicePrincipal_properties_typeProperties_tenant": {
+			"type": "string",
+			"defaultValue": "@{linkedService().TenantID}"
+		},
+		"REST_NorthernRe_ServicePrincipal_properties_typeProperties_aadResourceId": {
+			"type": "string",
+			"defaultValue": "@{linkedService().ResourceID}"
+		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -96,6 +112,18 @@
 					},
 					"AzureSQL_NorthernRe_properties_typeProperties_userName": {
 						"value": "[parameters('AzureSQL_NorthernRe_properties_typeProperties_userName')]"
+					},
+					"REST_NorthernRe_ServicePrincipal_properties_typeProperties_url": {
+						"value": "[parameters('REST_NorthernRe_ServicePrincipal_properties_typeProperties_url')]"
+					},
+					"REST_NorthernRe_ServicePrincipal_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('REST_NorthernRe_ServicePrincipal_properties_typeProperties_servicePrincipalId')]"
+					},
+					"REST_NorthernRe_ServicePrincipal_properties_typeProperties_tenant": {
+						"value": "[parameters('REST_NorthernRe_ServicePrincipal_properties_typeProperties_tenant')]"
+					},
+					"REST_NorthernRe_ServicePrincipal_properties_typeProperties_aadResourceId": {
+						"value": "[parameters('REST_NorthernRe_ServicePrincipal_properties_typeProperties_aadResourceId')]"
 					}
 				}
 			},
