@@ -251,11 +251,11 @@
 			},
 			"DatabricksCatalog": {
 				"type": "string",
-				"defaultValue": "vellum_data"
+				"defaultValue": "investor_jaffa"
 			},
 			"DatabricksSchema": {
 				"type": "string",
-				"defaultValue": "treefrog"
+				"defaultValue": "default"
 			},
 			"DatabricksQuery": {
 				"type": "string",
