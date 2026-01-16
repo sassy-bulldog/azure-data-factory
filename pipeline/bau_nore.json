@@ -30,10 +30,6 @@
 						"requestInterval": "00.00:00:00.010",
 						"requestMethod": "GET",
 						"additionalHeaders": {
-							"Authorization": {
-								"value": "Bearer @{activity('Get PAT').output.value}",
-								"type": "Expression"
-							},
 							"Content-Type": "application/json"
 						},
 						"paginationRules": {
@@ -91,11 +87,23 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "AzureDatabricks",
+						"referenceName": "REST_ServicePrincipal",
 						"type": "DatasetReference",
 						"parameters": {
 							"BaseURL": {
 								"value": "https://adb-@{pipeline().parameters.DatabricksInstance}.azuredatabricks.net/api/2.0/sql/statements/@{activity('SubmitSQLStatement').output.statement_id}",
+								"type": "Expression"
+							},
+							"TenantID": {
+								"value": "@pipeline().parameters.TenantID",
+								"type": "Expression"
+							},
+							"ClientID": {
+								"value": "@pipeline().parameters.ClientID",
+								"type": "Expression"
+							},
+							"ResourceID": {
+								"value": "@pipeline().parameters.ResourceID",
 								"type": "Expression"
 							}
 						}
@@ -118,14 +126,7 @@
 				"name": "SubmitSQLStatement",
 				"description": "Submits our SQL Statement to Azure Data Bricks",
 				"type": "WebActivity",
-				"dependsOn": [
-					{
-						"activity": "Get PAT",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -137,16 +138,44 @@
 				"typeProperties": {
 					"method": "POST",
 					"headers": {
-						"Authorization": {
-							"value": "Bearer @{activity('Get PAT').output.value}",
-							"type": "Expression"
-						},
 						"Content-Type": "application/json"
 					},
-					"url": "https://adb-6792391718158368.8.azuredatabricks.net/api/2.0/sql/statements",
+					"linkedServices": [
+						{
+							"referenceName": "REST_NorthernRe_ServicePrincipal",
+							"type": "LinkedServiceReference"
+						}
+					],
+					"url": {
+						"value": "https://adb-@{pipeline().parameters.DatabricksInstance}.azuredatabricks.net/api/2.0/sql/statements",
+						"type": "Expression"
+					},
 					"body": {
 						"value": "@json(concat('{',\n  '\"warehouse_id\":\"', pipeline().parameters.DatabricksWarehouse, '\",',\n  '\"catalog\":\"', pipeline().parameters.DatabricksCatalog, '\",',\n  '\"schema\":\"', pipeline().parameters.DatabricksSchema, '\",',\n  '\"statement\":\"', pipeline().parameters.DatabricksQuery,'\",',\n'}'))",
 						"type": "Expression"
+					},
+					"authentication": {
+						"type": "ServicePrincipal",
+						"userTenant": {
+							"value": "@pipeline().parameters.TenantID",
+							"type": "Expression"
+						},
+						"username": {
+							"value": "@pipeline().parameters.ClientID",
+							"type": "Expression"
+						},
+						"resource": {
+							"value": "@pipeline().parameters.ResourceID",
+							"type": "Expression"
+						},
+						"password": {
+							"type": "AzureKeyVaultSecret",
+							"store": {
+								"referenceName": "AzureKeyVault_NorthernRe",
+								"type": "LinkedServiceReference"
+							},
+							"secretName": "ClientSecretValue"
+						}
 					}
 				}
 			},
@@ -173,43 +202,40 @@
 				"typeProperties": {
 					"method": "GET",
 					"headers": {
-						"Authorization": {
-							"value": "Bearer @{activity('Get PAT').output.value}",
-							"type": "Expression"
-						},
 						"Content-Type": "application/json"
 					},
-					"url": {
-						"value": "https://adb-@{pipeline().parameters.DatabricksInstance}.azuredatabricks.net/api/2.0/sql/statements/@{activity('SubmitSQLStatement').output.statement_id}",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "Get PAT",
-				"description": "Gets the Personal Access Token from Azure Key Vault",
-				"type": "WebActivity",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"method": "GET",
 					"linkedServices": [
 						{
-							"referenceName": "AzureKeyVault_NorthernRe",
+							"referenceName": "REST_NorthernRe_ServicePrincipal",
 							"type": "LinkedServiceReference"
 						}
 					],
-					"url": "https://northernredatabricks.vault.azure.net//secrets/PAT?api-version=7.5",
+					"url": {
+						"value": "https://adb-@{pipeline().parameters.DatabricksInstance}.azuredatabricks.net/api/2.0/sql/statements/@{activity('SubmitSQLStatement').output.statement_id}",
+						"type": "Expression"
+					},
 					"authentication": {
-						"type": "MSI",
-						"resource": "https://vault.azure.net"
+						"type": "ServicePrincipal",
+						"userTenant": {
+							"value": "@pipeline().parameters.TenantID",
+							"type": "Expression"
+						},
+						"username": {
+							"value": "@pipeline().parameters.ClientID",
+							"type": "Expression"
+						},
+						"resource": {
+							"value": "@pipeline().parameters.ResourceID",
+							"type": "Expression"
+						},
+						"password": {
+							"type": "AzureKeyVaultSecret",
+							"store": {
+								"referenceName": "AzureKeyVault_NorthernRe",
+								"type": "LinkedServiceReference"
+							},
+							"secretName": "ClientSecretValue"
+						}
 					}
 				}
 			}
@@ -238,6 +264,18 @@
 			"queryDate": {
 				"type": "string",
 				"defaultValue": "'2025-09-06T01:00:00.2791978Z'"
+			},
+			"TenantID": {
+				"type": "string",
+				"defaultValue": "ca024c7e-927f-4b78-9fcb-aae554c6ade1"
+			},
+			"ClientID": {
+				"type": "string",
+				"defaultValue": "c748753e-a9b8-42e7-8e81-37d5df61472a"
+			},
+			"ResourceID": {
+				"type": "string",
+				"defaultValue": "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d"
 			}
 		},
 		"folder": {
