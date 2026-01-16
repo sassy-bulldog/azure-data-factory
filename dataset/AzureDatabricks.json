@@ -2,9 +2,21 @@
 	"name": "AzureDatabricks",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "Azure Databricks",
+			"referenceName": "REST_NorthernRe_ServicePrincipal",
 			"type": "LinkedServiceReference",
 			"parameters": {
+				"TenantID": {
+					"value": "@dataset().TenantID",
+					"type": "Expression"
+				},
+				"ClientID": {
+					"value": "@dataset().ClientID",
+					"type": "Expression"
+				},
+				"ResourceID": {
+					"value": "@dataset().ResourceID",
+					"type": "Expression"
+				},
 				"BaseURL": {
 					"value": "@dataset().BaseURL",
 					"type": "Expression"
@@ -15,6 +27,18 @@
 			"BaseURL": {
 				"type": "string",
 				"defaultValue": "https://adb-6792391718158368.8.azuredatabricks.net/api/2.0/sql/statements/01f03d61-2b4d-195b-b610-aa353d2bc442"
+			},
+			"TenantID": {
+				"type": "string",
+				"defaultValue": "ca024c7e-927f-4b78-9fcb-aae554c6ade1"
+			},
+			"ClientID": {
+				"type": "string",
+				"defaultValue": "c748753e-a9b8-42e7-8e81-37d5df61472a"
+			},
+			"ResourceID": {
+				"type": "string",
+				"defaultValue": "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d"
 			}
 		},
 		"folder": {
