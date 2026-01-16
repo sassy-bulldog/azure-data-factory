@@ -1,5 +1,5 @@
 {
-	"name": "AzureDatabricks",
+	"name": "REST_ServicePrincipal",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "REST_NorthernRe_ServicePrincipal",
