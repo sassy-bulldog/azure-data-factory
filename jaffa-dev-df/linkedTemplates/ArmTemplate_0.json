@@ -157,6 +157,168 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/nore_secrets')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Get the secrets associated with Northern Re data",
+				"activities": [
+					{
+						"name": "List Secrets",
+						"description": "Gets the ClientID from Azure Key Vault",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"linkedServices": [
+								{
+									"referenceName": "AzureKeyVault_NorthernRe",
+									"type": "LinkedServiceReference"
+								}
+							],
+							"url": "https://northernredatabricks.vault.azure.net/secrets?api-version=7.5",
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://vault.azure.net"
+							}
+						}
+					},
+					{
+						"name": "For Each Secret",
+						"description": "Iterate over the secrets and extract the key value pairs for use in later pipelines",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "List Secrets",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('List Secrets').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Get Secret Value",
+									"description": "Get the value for the current secret being iterated over",
+									"type": "WebActivity",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"method": "GET",
+										"headers": {},
+										"linkedServices": [
+											{
+												"referenceName": "AzureKeyVault_NorthernRe",
+												"type": "LinkedServiceReference"
+											}
+										],
+										"url": {
+											"value": "@concat(\n    item().id,\n    '?api-version=7.5'\n)",
+											"type": "Expression"
+										},
+										"authentication": {
+											"type": "MSI",
+											"resource": "https://vault.azure.net"
+										}
+									}
+								},
+								{
+									"name": "Append Secret",
+									"description": "Append the secret key value pair to our output variable.",
+									"type": "AppendVariable",
+									"dependsOn": [
+										{
+											"activity": "Get Secret Value",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "SecretDictionary",
+										"value": {
+											"value": "@json(\n    concat(\n        '{',\n        '\"name\": \"', last(split(string(item().id), '/')), '\",',\n        '\"value\": \"', string(activity('Get Secret Value').output.value), '\"',\n        '}'\n    )\n)",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "Set Output",
+						"description": "Returns the list of secret key value pairs to the parent flow",
+						"type": "SetVariable",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "For Each Secret",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "pipelineReturnValue",
+							"value": [
+								{
+									"key": "ClientID",
+									"value": {
+										"type": "Object",
+										"content": "@json(variables('SecretDictionary'))"
+									}
+								}
+							],
+							"setSystemVariable": true
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"SecretDictionary": {
+						"type": "Array"
+					}
+				},
+				"folder": {
+					"name": "NorthernRe/Financial Model Inputs"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureKeyVault_NorthernRe')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/AzureDataLake')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -485,7 +647,7 @@
 				"parameters": {
 					"json_FileName": {
 						"type": "String",
-						"defaultValue": "2025-11-15T02:00:01Z.json"
+						"defaultValue": "2026-02-28T02:00:01Z.json"
 					}
 				},
 				"folder": {
@@ -767,168 +929,6 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/nore_secrets')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "Get the secrets associated with Northern Re data",
-				"activities": [
-					{
-						"name": "List Secrets",
-						"description": "Gets the ClientID from Azure Key Vault",
-						"type": "WebActivity",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"method": "GET",
-							"headers": {},
-							"linkedServices": [
-								{
-									"referenceName": "AzureKeyVault_NorthernRe",
-									"type": "LinkedServiceReference"
-								}
-							],
-							"url": "https://northernredatabricks.vault.azure.net/secrets?api-version=7.5",
-							"authentication": {
-								"type": "MSI",
-								"resource": "https://vault.azure.net"
-							}
-						}
-					},
-					{
-						"name": "For Each Secret",
-						"description": "Iterate over the secrets and extract the key value pairs for use in later pipelines",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "List Secrets",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('List Secrets').output.value",
-								"type": "Expression"
-							},
-							"activities": [
-								{
-									"name": "Get Secret Value",
-									"description": "Get the value for the current secret being iterated over",
-									"type": "WebActivity",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "0.12:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"method": "GET",
-										"headers": {},
-										"linkedServices": [
-											{
-												"referenceName": "AzureKeyVault_NorthernRe",
-												"type": "LinkedServiceReference"
-											}
-										],
-										"url": {
-											"value": "@concat(\n    item().id,\n    '?api-version=7.5'\n)",
-											"type": "Expression"
-										},
-										"authentication": {
-											"type": "MSI",
-											"resource": "https://vault.azure.net"
-										}
-									}
-								},
-								{
-									"name": "Append Secret",
-									"description": "Append the secret key value pair to our output variable.",
-									"type": "AppendVariable",
-									"dependsOn": [
-										{
-											"activity": "Get Secret Value",
-											"dependencyConditions": [
-												"Succeeded"
-											]
-										}
-									],
-									"userProperties": [],
-									"typeProperties": {
-										"variableName": "SecretDictionary",
-										"value": {
-											"value": "@json(\n    concat(\n        '{',\n        '\"name\": \"', last(split(string(item().id), '/')), '\",',\n        '\"value\": \"', string(activity('Get Secret Value').output.value), '\"',\n        '}'\n    )\n)",
-											"type": "Expression"
-										}
-									}
-								}
-							]
-						}
-					},
-					{
-						"name": "Set Output",
-						"description": "Returns the list of secret key value pairs to the parent flow",
-						"type": "SetVariable",
-						"state": "Inactive",
-						"onInactiveMarkAs": "Succeeded",
-						"dependsOn": [
-							{
-								"activity": "For Each Secret",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "pipelineReturnValue",
-							"value": [
-								{
-									"key": "ClientID",
-									"value": {
-										"type": "Object",
-										"content": "@json(variables('SecretDictionary'))"
-									}
-								}
-							],
-							"setSystemVariable": true
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"variables": {
-					"SecretDictionary": {
-						"type": "Array"
-					}
-				},
-				"folder": {
-					"name": "NorthernRe/Financial Model Inputs"
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureKeyVault_NorthernRe')]"
-			]
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/cleanup')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -964,7 +964,7 @@
 							"storeSettings": {
 								"type": "AzureBlobFSReadSettings",
 								"recursive": true,
-								"wildcardFileName": "2025-11-22*.parquet",
+								"wildcardFileName": "2026-03-07*.parquet",
 								"enablePartitionDiscovery": false
 							}
 						}
@@ -1112,11 +1112,20 @@
 						},
 						{
 							"name": "cast1"
+						},
+						{
+							"name": "vCreated"
+						},
+						{
+							"name": "filter1"
+						},
+						{
+							"name": "joinvCreated"
 						}
 					],
 					"scriptLines": [
 						"parameters{",
-						"     queryDate as string (toString('2025-11-29T02:00:01Z'))",
+						"     queryDate as string (toString('2026-02-28T02:00:01Z'))",
 						"}",
 						"source(output(",
 						"          statement_id as string,",
@@ -1137,7 +1146,7 @@
 						"     ),",
 						"     skipDuplicateMapInputs: false,",
 						"     skipDuplicateMapOutputs: false) ~> flattenrows",
-						"pivot1 derive({isAdmitted } = case(\r",
+						"joinvCreated derive({isAdmitted } = case(\r",
 						"    equalsIgnoreCase(pvt_adm_nonadm_indicator, 'Admitted'), toBoolean('true'),\r",
 						"    equalsIgnoreCase(pvt_adm_nonadm_indicator, 'NonAdmitted'), toBoolean('false'),\r",
 						"    toBoolean('null')\r",
@@ -1150,7 +1159,8 @@
 						"    '/',\r",
 						"    $queryDate,\r",
 						"    '.parquet'\r",
-						")) ~> derivedColumn1",
+						"),",
+						"          pvt_v_created = coalesce(pvt_v_created, max_v_created)) ~> derivedColumn1",
 						"cast1 aggregate(groupBy(pvt_nre_feed,",
 						"          pvt_treaty_year,",
 						"          pvt_adm_nonadm_indicator,",
@@ -1165,7 +1175,7 @@
 						"     ignoreSpaces: false,",
 						"     broadcast: 'auto')~> join1",
 						"assert1 select(mapColumn(",
-						"          statement_id,",
+						"          statement_id = pivot1@statement_id,",
 						"          status,",
 						"          nre_feed = pivot1@pvt_nre_feed,",
 						"          bordereaux_month = cast1@pvt_bordereaux_month,",
@@ -1193,6 +1203,7 @@
 						"     expectTrue(!isNull(cast1@pvt_bordereaux_month), false, 'bordereaux_monthNotNull', null, \"Assert that bordereaux_month is populated for all rows\"),",
 						"     expectTrue(!isNull(pivot1@pvt_nre_feed), false, 'nre_feedNotNull', null, \"Assert that nre_feed is populated for all rows\"),",
 						"     expectTrue(!isNull(cast1@pvt_treaty_year), false, 'treaty_yearNotNull', null, \"Assert that treaty_year is populated for all rows\"),",
+						"     expectTrue(equals(max_v_created, min_v_created), false, 'v_createdHomogenuous', null, \"Assert that there is only one vcreated date\"),",
 						"     abort: true) ~> assert1",
 						"source1 foldDown(unroll(manifest.schema.columns),",
 						"     mapColumn(",
@@ -1255,6 +1266,15 @@
 						"          pvt_v_created as date",
 						"     ),",
 						"     errors: true) ~> cast1",
+						"filter1 aggregate(groupBy(flattenschema@statement_id),",
+						"     max_v_created = max(value),",
+						"          min_v_created = min(value)) ~> vCreated",
+						"derivedValue filter(fixedName == 'v_created') ~> filter1",
+						"pivot1, vCreated join(pivot1@statement_id == vCreated@statement_id,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinvCreated",
 						"select1 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     input(",
