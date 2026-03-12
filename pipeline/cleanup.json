@@ -31,7 +31,7 @@
 					"storeSettings": {
 						"type": "AzureBlobFSReadSettings",
 						"recursive": true,
-						"wildcardFileName": "2025-11-22*.parquet",
+						"wildcardFileName": "2026-03-07*.parquet",
 						"enablePartitionDiscovery": false
 					}
 				}
