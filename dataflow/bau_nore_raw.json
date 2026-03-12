@@ -68,11 +68,20 @@
 				},
 				{
 					"name": "cast1"
+				},
+				{
+					"name": "vCreated"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "joinvCreated"
 				}
 			],
 			"scriptLines": [
 				"parameters{",
-				"     queryDate as string (toString('2025-11-29T02:00:01Z'))",
+				"     queryDate as string (toString('2026-02-28T02:00:01Z'))",
 				"}",
 				"source(output(",
 				"          statement_id as string,",
@@ -93,7 +102,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: false,",
 				"     skipDuplicateMapOutputs: false) ~> flattenrows",
-				"pivot1 derive({isAdmitted } = case(\r",
+				"joinvCreated derive({isAdmitted } = case(\r",
 				"    equalsIgnoreCase(pvt_adm_nonadm_indicator, 'Admitted'), toBoolean('true'),\r",
 				"    equalsIgnoreCase(pvt_adm_nonadm_indicator, 'NonAdmitted'), toBoolean('false'),\r",
 				"    toBoolean('null')\r",
@@ -106,7 +115,8 @@
 				"    '/',\r",
 				"    $queryDate,\r",
 				"    '.parquet'\r",
-				")) ~> derivedColumn1",
+				"),",
+				"          pvt_v_created = coalesce(pvt_v_created, max_v_created)) ~> derivedColumn1",
 				"cast1 aggregate(groupBy(pvt_nre_feed,",
 				"          pvt_treaty_year,",
 				"          pvt_adm_nonadm_indicator,",
@@ -121,7 +131,7 @@
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> join1",
 				"assert1 select(mapColumn(",
-				"          statement_id,",
+				"          statement_id = pivot1@statement_id,",
 				"          status,",
 				"          nre_feed = pivot1@pvt_nre_feed,",
 				"          bordereaux_month = cast1@pvt_bordereaux_month,",
@@ -149,6 +159,7 @@
 				"     expectTrue(!isNull(cast1@pvt_bordereaux_month), false, 'bordereaux_monthNotNull', null, \"Assert that bordereaux_month is populated for all rows\"),",
 				"     expectTrue(!isNull(pivot1@pvt_nre_feed), false, 'nre_feedNotNull', null, \"Assert that nre_feed is populated for all rows\"),",
 				"     expectTrue(!isNull(cast1@pvt_treaty_year), false, 'treaty_yearNotNull', null, \"Assert that treaty_year is populated for all rows\"),",
+				"     expectTrue(equals(max_v_created, min_v_created), false, 'v_createdHomogenuous', null, \"Assert that there is only one vcreated date\"),",
 				"     abort: true) ~> assert1",
 				"source1 foldDown(unroll(manifest.schema.columns),",
 				"     mapColumn(",
@@ -211,6 +222,15 @@
 				"          pvt_v_created as date",
 				"     ),",
 				"     errors: true) ~> cast1",
+				"filter1 aggregate(groupBy(flattenschema@statement_id),",
+				"     max_v_created = max(value),",
+				"          min_v_created = min(value)) ~> vCreated",
+				"derivedValue filter(fixedName == 'v_created') ~> filter1",
+				"pivot1, vCreated join(pivot1@statement_id == vCreated@statement_id,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinvCreated",
 				"select1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
