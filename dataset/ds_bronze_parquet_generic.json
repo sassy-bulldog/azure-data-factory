@@ -1,0 +1,134 @@
+{
+	"name": "ds_bronze_parquet_generic",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Development LDS",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"json_FileName": {
+				"type": "String",
+				"defaultValue": "2025-09-06T01:00:00.2791978Z.json"
+			}
+		},
+		"folder": {
+			"name": "Northern Re/Treaties/raw"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@dataset().json_FileName",
+					"type": "Expression"
+				},
+				"folderPath": "inbox",
+				"container": "development-data-lake"
+			},
+			"encodingName": "UTF-8 without BOM"
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"statement_id": {
+					"type": "string"
+				},
+				"status": {
+					"type": "object",
+					"properties": {
+						"state": {
+							"type": "string"
+						}
+					}
+				},
+				"manifest": {
+					"type": "object",
+					"properties": {
+						"format": {
+							"type": "string"
+						},
+						"schema": {
+							"type": "object",
+							"properties": {
+								"column_count": {
+									"type": "integer"
+								},
+								"columns": {
+									"type": "array",
+									"items": {
+										"type": "object",
+										"properties": {
+											"name": {
+												"type": "string"
+											},
+											"type_text": {
+												"type": "string"
+											},
+											"type_name": {
+												"type": "string"
+											},
+											"position": {
+												"type": "integer"
+											}
+										}
+									}
+								}
+							}
+						},
+						"total_chunk_count": {
+							"type": "integer"
+						},
+						"chunks": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"chunk_index": {
+										"type": "integer"
+									},
+									"row_offset": {
+										"type": "integer"
+									},
+									"row_count": {
+										"type": "integer"
+									}
+								}
+							}
+						},
+						"total_row_count": {
+							"type": "integer"
+						},
+						"truncated": {
+							"type": "boolean"
+						}
+					}
+				},
+				"result": {
+					"type": "object",
+					"properties": {
+						"chunk_index": {
+							"type": "integer"
+						},
+						"row_offset": {
+							"type": "integer"
+						},
+						"row_count": {
+							"type": "integer"
+						},
+						"data_array": {
+							"type": "array",
+							"items": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

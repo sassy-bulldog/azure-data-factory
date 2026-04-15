@@ -1,5 +1,5 @@
 {
-	"name": "AzureSQL_NorthernRe_ParameterizedTable",
+	"name": "ds_nore_sql_generic",
 	"properties": {
 		"description": "Uses the two parameters, tableschema and tablename, to extract data from the Northern Re SQL server.",
 		"linkedServiceName": {
@@ -17,7 +17,7 @@
 			}
 		},
 		"folder": {
-			"name": "Northern Re"
+			"name": "Northern Re/Treaties/Source"
 		},
 		"annotations": [],
 		"type": "AzureSqlTable",
